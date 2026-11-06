@@ -1,5 +1,5 @@
 "use client";
-
+export const dynamic = "force-dynamic"; //
 import { supabase } from "@/lib/supabase";
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
