@@ -267,13 +267,11 @@ function EspaceEleveContent() {  const searchParams = useSearchParams();
 }
 export default function EspaceElevePage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white font-bold">
-          Chargement...
-        </div>
-      }
-    >
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white font-bold">
+        Chargement...
+      </div>
+    }>
       <EspaceEleveContent />
     </Suspense>
   );
