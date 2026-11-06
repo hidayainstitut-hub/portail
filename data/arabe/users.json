@@ -1,0 +1,44 @@
+[
+  {
+    "id": "eleve-a",
+    "email": "eleve.a@hidaya.test",
+    "role": "student",
+    "groupe": "groupe-a",
+    "nom": "Amina (Groupe A)"
+  },
+  {
+    "id": "eleve-b",
+    "email": "eleve.b@hidaya.test",
+    "role": "student",
+    "groupe": "groupe-b",
+    "nom": "Youssef (Groupe B)"
+  },
+  {
+    "id": "eleve-c",
+    "email": "eleve.c@hidaya.test",
+    "role": "student",
+    "groupe": "groupe-c",
+    "nom": "Sarra (Groupe C)"
+  },
+  {
+    "id": "eleve-d",
+    "email": "eleve.d@hidaya.test",
+    "role": "student",
+    "groupe": "groupe-d",
+    "nom": "Ibrahim (Groupe D)"
+  },
+  {
+    "id": "parent-a",
+    "email": "parent.a@hidaya.test",
+    "role": "parent",
+    "enfants": ["eleve-a"],
+    "nom": "Parent d'Amina"
+  },
+  {
+    "id": "prof-1",
+    "email": "prof@hidaya.test",
+    "role": "teacher",
+    "groupes": ["groupe-a", "groupe-b", "groupe-c", "groupe-d"],
+    "nom": "Oustadh Ahmed"
+  }
+]

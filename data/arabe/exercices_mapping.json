@@ -1,0 +1,35 @@
+{
+  "lettre": {
+    "exercices_disponibles": [
+      {
+        "id": "reconnaissance_visuelle",
+        "type": "choix_multiple",
+        "consigne": "Trouve la bonne lettre"
+      },
+      {
+        "id": "reconnaissance_sonore",
+        "type": "ecoute_et_clique",
+        "consigne": "Écoute le son et choisis la bonne lettre"
+      },
+      {
+        "id": "discrimination",
+        "type": "intrus",
+        "consigne": "Trouve la lettre différente"
+      }
+    ]
+  },
+  "voyelle": {
+    "exercices_disponibles": [
+      {
+        "id": "association_son_voyelle",
+        "type": "ecoute_et_clique",
+        "consigne": "Écoute la voyelle et sélectionne le bon symbole"
+      },
+      {
+        "id": "reconnaissance_voyelle",
+        "type": "choix_multiple",
+        "consigne": "Quelle est cette voyelle ?"
+      }
+    ]
+  }
+}

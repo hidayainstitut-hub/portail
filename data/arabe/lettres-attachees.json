@@ -1,0 +1,338 @@
+[
+  {
+    "id": "alif",
+    "lettre": "ا",
+    "formes": {
+      "isolee": "ا",
+      "debut": "ا",
+      "milieu": "ـا",
+      "fin": "ـا"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/alif.mp3"
+  },
+  {
+    "id": "ba",
+    "lettre": "ب",
+    "formes": {
+      "isolee": "ب",
+      "debut": "بـ",
+      "milieu": "ـبـ",
+      "fin": "ـب"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/ba.mp3"
+  },
+  {
+    "id": "ta",
+    "lettre": "ت",
+    "formes": {
+      "isolee": "ت",
+      "debut": "تـ",
+      "milieu": "ـتـ",
+      "fin": "ـت"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/ta.mp3"
+  },
+  {
+    "id": "tha",
+    "lettre": "ث",
+    "formes": {
+      "isolee": "ث",
+      "debut": "ثـ",
+      "milieu": "ـثـ",
+      "fin": "ـث"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/tha.mp3"
+  },
+  {
+    "id": "jim",
+    "lettre": "ج",
+    "formes": {
+      "isolee": "ج",
+      "debut": "جـ",
+      "milieu": "ـجـ",
+      "fin": "ـج"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/jim.mp3"
+  },
+  {
+    "id": "ha",
+    "lettre": "ح",
+    "formes": {
+      "isolee": "ح",
+      "debut": "حـ",
+      "milieu": "ـحـ",
+      "fin": "ـح"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/ha.mp3"
+  },
+  {
+    "id": "kha",
+    "lettre": "خ",
+    "formes": {
+      "isolee": "خ",
+      "debut": "خـ",
+      "milieu": "ـخـ",
+      "fin": "ـخ"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/kha.mp3"
+  },
+  {
+    "id": "dal",
+    "lettre": "د",
+    "formes": {
+      "isolee": "د",
+      "debut": "د",
+      "milieu": "ـد",
+      "fin": "ـد"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/dal.mp3"
+  },
+  {
+    "id": "dhal",
+    "lettre": "ذ",
+    "formes": {
+      "isolee": "ذ",
+      "debut": "ذ",
+      "milieu": "ـذ",
+      "fin": "ـذ"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/dhal.mp3"
+  },
+  {
+    "id": "ra",
+    "lettre": "ر",
+    "formes": {
+      "isolee": "ر",
+      "debut": "ر",
+      "milieu": "ـر",
+      "fin": "ـر"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/ra.mp3"
+  },
+  {
+    "id": "zay",
+    "lettre": "ز",
+    "formes": {
+      "isolee": "ز",
+      "debut": "ز",
+      "milieu": "ـز",
+      "fin": "ـز"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/zay.mp3"
+  },
+  {
+    "id": "sin",
+    "lettre": "س",
+    "formes": {
+      "isolee": "س",
+      "debut": "سـ",
+      "milieu": "ـسـ",
+      "fin": "ـس"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/sin.mp3"
+  },
+  {
+    "id": "shin",
+    "lettre": "ش",
+    "formes": {
+      "isolee": "ش",
+      "debut": "شـ",
+      "milieu": "ـشـ",
+      "fin": "ـش"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/chin.mp3"
+  },
+  {
+    "id": "sad",
+    "lettre": "ص",
+    "formes": {
+      "isolee": "ص",
+      "debut": "صـ",
+      "milieu": "ـصـ",
+      "fin": "ـص"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/sad.mp3"
+  },
+  {
+    "id": "dad",
+    "lettre": "ض",
+    "formes": {
+      "isolee": "ض",
+      "debut": "ضـ",
+      "milieu": "ـضـ",
+      "fin": "ـض"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/dad.mp3"
+  },
+  {
+    "id": "ta-emphatique",
+    "lettre": "ط",
+    "formes": {
+      "isolee": "ط",
+      "debut": "طـ",
+      "milieu": "ـطـ",
+      "fin": "ـط"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/ta_emphatique.mp3"
+  },
+  {
+    "id": "dha-emphatique",
+    "lettre": "ظ",
+    "formes": {
+      "isolee": "ظ",
+      "debut": "ظـ",
+      "milieu": "ـظـ",
+      "fin": "ـظ"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/dha_emphatique.mp3"
+  },
+  {
+    "id": "ain",
+    "lettre": "ع",
+    "formes": {
+      "isolee": "ع",
+      "debut": "عـ",
+      "milieu": "ـعـ",
+      "fin": "ـع"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/ain.mp3"
+  },
+  {
+    "id": "ghain",
+    "lettre": "غ",
+    "formes": {
+      "isolee": "غ",
+      "debut": "غـ",
+      "milieu": "ـغـ",
+      "fin": "ـغ"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/ghain.mp3"
+  },
+  {
+    "id": "fa",
+    "lettre": "ف",
+    "formes": {
+      "isolee": "ف",
+      "debut": "فـ",
+      "milieu": "ـفـ",
+      "fin": "ـف"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/fa.mp3"
+  },
+  {
+    "id": "qaf",
+    "lettre": "ق",
+    "formes": {
+      "isolee": "ق",
+      "debut": "قـ",
+      "milieu": "ـقـ",
+      "fin": "ـق"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/qaf.mp3"
+  },
+  {
+    "id": "kaf",
+    "lettre": "ك",
+    "formes": {
+      "isolee": "ك",
+      "debut": "كـ",
+      "milieu": "ـكـ",
+      "fin": "ـك"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/kaf.mp3"
+  },
+  {
+    "id": "lam",
+    "lettre": "ل",
+    "formes": {
+      "isolee": "ل",
+      "debut": "لـ",
+      "milieu": "ـلـ",
+      "fin": "ـل"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/lam.mp3"
+  },
+  {
+    "id": "mim",
+    "lettre": "م",
+    "formes": {
+      "isolee": "م",
+      "debut": "مـ",
+      "milieu": "ـمـ",
+      "fin": "ـم"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/mim.mp3"
+  },
+  {
+    "id": "nun",
+    "lettre": "ن",
+    "formes": {
+      "isolee": "ن",
+      "debut": "نـ",
+      "milieu": "ـنـ",
+      "fin": "ـن"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/nun.mp3"
+  },
+  {
+    "id": "ha2",
+    "lettre": "ه",
+    "formes": {
+      "isolee": "ه",
+      "debut": "هـ",
+      "milieu": "ـهـ",
+      "fin": "ـه"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/ha2.mp3"
+  },
+  {
+    "id": "waw",
+    "lettre": "و",
+    "formes": {
+      "isolee": "و",
+      "debut": "و",
+      "milieu": "ـو",
+      "fin": "ـو"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/waw.mp3"
+  },
+  {
+    "id": "ya",
+    "lettre": "ي",
+    "formes": {
+      "isolee": "ي",
+      "debut": "يـ",
+      "milieu": "ـيـ",
+      "fin": "ـي"
+    },
+    "niveau": 2,
+    "audio": "/audio/arabe/ya.mp3"
+  }
+]

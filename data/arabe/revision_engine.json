@@ -1,0 +1,26 @@
+{
+  "regles_entrainement": {
+    "nb_questions_par_session": 5,
+    "seuil_passage_defi": 0.8,
+    "repetition_erreur_immediate": true
+  },
+  "regles_defi": {
+    "nb_questions_defi": 10,
+    "seuil_validation_notion": 0.9,
+    "retour_entrainement_apres_fautes": 2
+  },
+  "niveaux_difficulte": [
+    {
+      "niveau": 1,
+      "nom": "Apprentissage",
+      "choix_multiples_nb_options": 2,
+      "temps_limite_secondes": null
+    },
+    {
+      "niveau": 2,
+      "nom": "Consolidation",
+      "choix_multiples_nb_options": 4,
+      "temps_limite_secondes": null
+    }
+  ]
+}

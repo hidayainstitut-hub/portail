@@ -1,0 +1,92 @@
+{
+  "alif": {
+    "type": "lettre",
+    "categorie_banque": "alphabets",
+    "ressources": {
+      "symbole": "أ",
+      "audio": "audio_alif.mp3",
+      "image": "alif.png"
+    }
+  },
+  "ba": {
+    "type": "lettre",
+    "categorie_banque": "alphabets",
+    "ressources": {
+      "symbole": "ب",
+      "audio": "audio_ba.mp3",
+      "image": "ba.png"
+    }
+  },
+  "ta": {
+    "type": "lettre",
+    "categorie_banque": "alphabets",
+    "ressources": {
+      "symbole": "ت",
+      "audio": "audio_ta.mp3",
+      "image": "ta.png"
+    }
+  },
+  "tha": {
+    "type": "lettre",
+    "categorie_banque": "alphabets",
+    "ressources": {
+      "symbole": "ث",
+      "audio": "audio_tha.mp3",
+      "image": "tha.png"
+    }
+  },
+  "jim": {
+    "type": "lettre",
+    "categorie_banque": "alphabets",
+    "ressources": {
+      "symbole": "ج",
+      "audio": "audio_jim.mp3",
+      "image": "jim.png"
+    }
+  },
+  "ha": {
+    "type": "lettre",
+    "categorie_banque": "alphabets",
+    "ressources": {
+      "symbole": "ح",
+      "audio": "audio_ha.mp3",
+      "image": "ha.png"
+    }
+  },
+  "kha": {
+    "type": "lettre",
+    "categorie_banque": "alphabets",
+    "ressources": {
+      "symbole": "خ",
+      "audio": "audio_kha.mp3",
+      "image": "kha.png"
+    }
+  },
+  "voyelle_a": {
+    "type": "voyelle",
+    "categorie_banque": "voyelle_courte",
+    "ressources": {
+      "nom_arabe": "fatha",
+      "symbole": "َ",
+      "audio": "audio_fatha.mp3"
+    }
+  },
+  "voyelle_i": {
+    "type": "voyelle",
+    "categorie_banque": "voyelle_courte",
+    "ressources": {
+      "nom_arabe": "kasra",
+      "symbole": "ِ",
+      "audio": "audio_kasra.mp3"
+    }
+  },
+  "voyelle_ou": {
+    "type": "voyelle",
+    "categorie_banque": "voyelle_courte",
+    "ressources": {
+      "nom_arabe": "damma",
+      "symbole": "ُ",
+      "audio": "audio_damma.mp3"
+    }
+  }
+}

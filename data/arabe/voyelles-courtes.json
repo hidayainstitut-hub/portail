@@ -1,0 +1,534 @@
+[
+  {
+    "id": "alif",
+    "lettre": "ا",
+    "voyelles": {
+      "a": {
+        "texte": "اَ",
+        "audio": "/audio/arabe/alif_a.mp3"
+      },
+      "i": {
+        "texte": "اِ",
+        "audio": "/audio/arabe/alif_i.mp3"
+      },
+      "ou": {
+        "texte": "اُ",
+        "audio": "/audio/arabe/alif_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "ba",
+    "lettre": "ب",
+    "voyelles": {
+      "a": {
+        "texte": "بَ",
+        "audio": "/audio/arabe/ba_a.mp3"
+      },
+      "i": {
+        "texte": "بِ",
+        "audio": "/audio/arabe/ba_i.mp3"
+      },
+      "ou": {
+        "texte": "بُ",
+        "audio": "/audio/arabe/ba_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "ta",
+    "lettre": "ت",
+    "voyelles": {
+      "a": {
+        "texte": "تَ",
+        "audio": "/audio/arabe/ta_a.mp3"
+      },
+      "i": {
+        "texte": "تِ",
+        "audio": "/audio/arabe/ta_i.mp3"
+      },
+      "ou": {
+        "texte": "تُ",
+        "audio": "/audio/arabe/ta_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "tha",
+    "lettre": "ث",
+    "voyelles": {
+      "a": {
+        "texte": "ثَ",
+        "audio": "/audio/arabe/tha_a.mp3"
+      },
+      "i": {
+        "texte": "ثِ",
+        "audio": "/audio/arabe/tha_i.mp3"
+      },
+      "ou": {
+        "texte": "ثُ",
+        "audio": "/audio/arabe/tha_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "jim",
+    "lettre": "ج",
+    "voyelles": {
+      "a": {
+        "texte": "جَ",
+        "audio": "/audio/arabe/jim_a.mp3"
+      },
+      "i": {
+        "texte": "جِ",
+        "audio": "/audio/arabe/jim_i.mp3"
+      },
+      "ou": {
+        "texte": "جُ",
+        "audio": "/audio/arabe/jim_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "ha",
+    "lettre": "ح",
+    "voyelles": {
+      "a": {
+        "texte": "حَ",
+        "audio": "/audio/arabe/ha_a.mp3"
+      },
+      "i": {
+        "texte": "حِ",
+        "audio": "/audio/arabe/ha_i.mp3"
+      },
+      "ou": {
+        "texte": "حُ",
+        "audio": "/audio/arabe/ha_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "kha",
+    "lettre": "خ",
+    "voyelles": {
+      "a": {
+        "texte": "خَ",
+        "audio": "/audio/arabe/kha_a.mp3"
+      },
+      "i": {
+        "texte": "خِ",
+        "audio": "/audio/arabe/kha_i.mp3"
+      },
+      "ou": {
+        "texte": "خُ",
+        "audio": "/audio/arabe/kha_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "dal",
+    "lettre": "د",
+    "voyelles": {
+      "a": {
+        "texte": "دَ",
+        "audio": "/audio/arabe/dal_a.mp3"
+      },
+      "i": {
+        "texte": "دِ",
+        "audio": "/audio/arabe/dal_i.mp3"
+      },
+      "ou": {
+        "texte": "دُ",
+        "audio": "/audio/arabe/dal_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "dhal",
+    "lettre": "ذ",
+    "voyelles": {
+      "a": {
+        "texte": "ذَ",
+        "audio": "/audio/arabe/dhal_a.mp3"
+      },
+      "i": {
+        "texte": "ذِ",
+        "audio": "/audio/arabe/dhal_i.mp3"
+      },
+      "ou": {
+        "texte": "ذُ",
+        "audio": "/audio/arabe/dhal_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "ra",
+    "lettre": "ر",
+    "voyelles": {
+      "a": {
+        "texte": "رَ",
+        "audio": "/audio/arabe/ra_a.mp3"
+      },
+      "i": {
+        "texte": "رِ",
+        "audio": "/audio/arabe/ra_i.mp3"
+      },
+      "ou": {
+        "texte": "رُ",
+        "audio": "/audio/arabe/ra_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "zay",
+    "lettre": "ز",
+    "voyelles": {
+      "a": {
+        "texte": "زَ",
+        "audio": "/audio/arabe/zay_a.mp3"
+      },
+      "i": {
+        "texte": "زِ",
+        "audio": "/audio/arabe/zay_i.mp3"
+      },
+      "ou": {
+        "texte": "زُ",
+        "audio": "/audio/arabe/zay_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "sin",
+    "lettre": "س",
+    "voyelles": {
+      "a": {
+        "texte": "سَ",
+        "audio": "/audio/arabe/sin_a.mp3"
+      },
+      "i": {
+        "texte": "سِ",
+        "audio": "/audio/arabe/sin_i.mp3"
+      },
+      "ou": {
+        "texte": "سُ",
+        "audio": "/audio/arabe/sin_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "shin",
+    "lettre": "ش",
+    "voyelles": {
+      "a": {
+        "texte": "شَ",
+        "audio": "/audio/arabe/chin_a.mp3"
+      },
+      "i": {
+        "texte": "شِ",
+        "audio": "/audio/arabe/chin_i.mp3"
+      },
+      "ou": {
+        "texte": "شُ",
+        "audio": "/audio/arabe/chin_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "sad",
+    "lettre": "ص",
+    "voyelles": {
+      "a": {
+        "texte": "صَ",
+        "audio": "/audio/arabe/sad_a.mp3"
+      },
+      "i": {
+        "texte": "صِ",
+        "audio": "/audio/arabe/sad_i.mp3"
+      },
+      "ou": {
+        "texte": "صُ",
+        "audio": "/audio/arabe/sad_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "dad",
+    "lettre": "ض",
+    "voyelles": {
+      "a": {
+        "texte": "ضَ",
+        "audio": "/audio/arabe/dad_a.mp3"
+      },
+      "i": {
+        "texte": "ضِ",
+        "audio": "/audio/arabe/dad_i.mp3"
+      },
+      "ou": {
+        "texte": "ضُ",
+        "audio": "/audio/arabe/dad_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "ta-emphatique",
+    "lettre": "ط",
+    "voyelles": {
+      "a": {
+        "texte": "طَ",
+        "audio": "/audio/arabe/ta_emphatique_a.mp3"
+      },
+      "i": {
+        "texte": "طِ",
+        "audio": "/audio/arabe/ta_emphatique_i.mp3"
+      },
+      "ou": {
+        "texte": "طُ",
+        "audio": "/audio/arabe/ta_emphatique_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "dha-emphatique",
+    "lettre": "ظ",
+    "voyelles": {
+      "a": {
+        "texte": "ظَ",
+        "audio": "/audio/arabe/dha_emphatique_a.mp3"
+      },
+      "i": {
+        "texte": "ظِ",
+        "audio": "/audio/arabe/dha_emphatique_i.mp3"
+      },
+      "ou": {
+        "texte": "ظُ",
+        "audio": "/audio/arabe/dha_emphatique_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "ain",
+    "lettre": "ع",
+    "voyelles": {
+      "a": {
+        "texte": "عَ",
+        "audio": "/audio/arabe/ain_a.mp3"
+      },
+      "i": {
+        "texte": "عِ",
+        "audio": "/audio/arabe/ain_i.mp3"
+      },
+      "ou": {
+        "texte": "عُ",
+        "audio": "/audio/arabe/ain_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "ghain",
+    "lettre": "غ",
+    "voyelles": {
+      "a": {
+        "texte": "غَ",
+        "audio": "/audio/arabe/ghain_a.mp3"
+      },
+      "i": {
+        "texte": "غِ",
+        "audio": "/audio/arabe/ghain_i.mp3"
+      },
+      "ou": {
+        "texte": "غُ",
+        "audio": "/audio/arabe/ghain_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "fa",
+    "lettre": "ف",
+    "voyelles": {
+      "a": {
+        "texte": "فَ",
+        "audio": "/audio/arabe/fa_a.mp3"
+      },
+      "i": {
+        "texte": "فِ",
+        "audio": "/audio/arabe/fa_i.mp3"
+      },
+      "ou": {
+        "texte": "فُ",
+        "audio": "/audio/arabe/fa_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "qaf",
+    "lettre": "ق",
+    "voyelles": {
+      "a": {
+        "texte": "قَ",
+        "audio": "/audio/arabe/qaf_a.mp3"
+      },
+      "i": {
+        "texte": "قِ",
+        "audio": "/audio/arabe/qaf_i.mp3"
+      },
+      "ou": {
+        "texte": "قُ",
+        "audio": "/audio/arabe/qaf_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "kaf",
+    "lettre": "ك",
+    "voyelles": {
+      "a": {
+        "texte": "كَ",
+        "audio": "/audio/arabe/kaf_a.mp3"
+      },
+      "i": {
+        "texte": "كِ",
+        "audio": "/audio/arabe/kaf_i.mp3"
+      },
+      "ou": {
+        "texte": "كُ",
+        "audio": "/audio/arabe/kaf_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "lam",
+    "lettre": "ل",
+    "voyelles": {
+      "a": {
+        "texte": "لَ",
+        "audio": "/audio/arabe/lam_a.mp3"
+      },
+      "i": {
+        "texte": "لِ",
+        "audio": "/audio/arabe/lam_i.mp3"
+      },
+      "ou": {
+        "texte": "لُ",
+        "audio": "/audio/arabe/lam_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "mim",
+    "lettre": "م",
+    "voyelles": {
+      "a": {
+        "texte": "مَ",
+        "audio": "/audio/arabe/mim_a.mp3"
+      },
+      "i": {
+        "texte": "مِ",
+        "audio": "/audio/arabe/mim_i.mp3"
+      },
+      "ou": {
+        "texte": "مُ",
+        "audio": "/audio/arabe/mim_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "nun",
+    "lettre": "ن",
+    "voyelles": {
+      "a": {
+        "texte": "نَ",
+        "audio": "/audio/arabe/nun_a.mp3"
+      },
+      "i": {
+        "texte": "نِ",
+        "audio": "/audio/arabe/nun_i.mp3"
+      },
+      "ou": {
+        "texte": "نُ",
+        "audio": "/audio/arabe/nun_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "ha2",
+    "lettre": "ه",
+    "voyelles": {
+      "a": {
+        "texte": "هَ",
+        "audio": "/audio/arabe/ha2_a.mp3"
+      },
+      "i": {
+        "texte": "هِ",
+        "audio": "/audio/arabe/ha2_i.mp3"
+      },
+      "ou": {
+        "texte": "هُ",
+        "audio": "/audio/arabe/ha2_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "waw",
+    "lettre": "و",
+    "voyelles": {
+      "a": {
+        "texte": "وَ",
+        "audio": "/audio/arabe/waw_a.mp3"
+      },
+      "i": {
+        "texte": "وِ",
+        "audio": "/audio/arabe/waw_i.mp3"
+      },
+      "ou": {
+        "texte": "وُ",
+        "audio": "/audio/arabe/waw_ou.mp3"
+      }
+    },
+    "niveau": 2
+  },
+  {
+    "id": "ya",
+    "lettre": "ي",
+    "voyelles": {
+      "a": {
+        "texte": "يَ",
+        "audio": "/audio/arabe/ya_a.mp3"
+      },
+      "i": {
+        "texte": "يِ",
+        "audio": "/audio/arabe/ya_i.mp3"
+      },
+      "ou": {
+        "texte": "يُ",
+        "audio": "/audio/arabe/ya_ou.mp3"
+      }
+    },
+    "niveau": 2
+  }
+]

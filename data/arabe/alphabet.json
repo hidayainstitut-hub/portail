@@ -1,0 +1,198 @@
+[
+  {
+    "id": "alif",
+    "lettre": "ا",
+    "translitteration": "Alif",
+    "niveau": 1,
+    "audio": "/audio/arabe/alif.mp3"
+  },
+  {
+    "id": "ba",
+    "lettre": "ب",
+    "translitteration": "Ba",
+    "niveau": 1,
+    "audio": "/audio/arabe/ba.mp3"
+  },
+  {
+    "id": "ta",
+    "lettre": "ت",
+    "translitteration": "Ta",
+    "niveau": 1,
+    "audio": "/audio/arabe/ta.mp3"
+  },
+  {
+    "id": "tha",
+    "lettre": "ث",
+    "translitteration": "Tha",
+    "niveau": 1,
+    "audio": "/audio/arabe/tha.mp3"
+  },
+  {
+    "id": "jim",
+    "lettre": "ج",
+    "translitteration": "Jim",
+    "niveau": 1,
+    "audio": "/audio/arabe/jim.mp3"
+  },
+  {
+    "id": "ha",
+    "lettre": "ح",
+    "translitteration": "Ha",
+    "niveau": 1,
+    "audio": "/audio/arabe/ha.mp3"
+  },
+  {
+    "id": "kha",
+    "lettre": "خ",
+    "translitteration": "Kha",
+    "niveau": 1,
+    "audio": "/audio/arabe/kha.mp3"
+  },
+  {
+    "id": "dal",
+    "lettre": "د",
+    "translitteration": "Dal",
+    "niveau": 1,
+    "audio": "/audio/arabe/dal.mp3"
+  },
+  {
+    "id": "dhal",
+    "lettre": "ذ",
+    "translitteration": "Dhal",
+    "niveau": 1,
+    "audio": "/audio/arabe/dhal.mp3"
+  },
+  {
+    "id": "ra",
+    "lettre": "ر",
+    "translitteration": "Ra",
+    "niveau": 1,
+    "audio": "/audio/arabe/ra.mp3"
+  },
+  {
+    "id": "zay",
+    "lettre": "ز",
+    "translitteration": "Zay",
+    "niveau": 1,
+    "audio": "/audio/arabe/zay.mp3"
+  },
+  {
+    "id": "sin",
+    "lettre": "س",
+    "translitteration": "Sin",
+    "niveau": 1,
+    "audio": "/audio/arabe/sin.mp3"
+  },
+  {
+    "id": "shin",
+    "lettre": "ش",
+    "translitteration": "Shin",
+    "niveau": 1,
+    "audio": "/audio/arabe/chin.mp3"
+  },
+  {
+    "id": "sad",
+    "lettre": "ص",
+    "translitteration": "Sad",
+    "niveau": 1,
+    "audio": "/audio/arabe/sad.mp3"
+  },
+  {
+    "id": "dad",
+    "lettre": "ض",
+    "translitteration": "Dad",
+    "niveau": 1,
+    "audio": "/audio/arabe/dad.mp3"
+  },
+  {
+    "id": "ta-emphatique",
+    "lettre": "ط",
+    "translitteration": "Ṭa / Ta",
+    "niveau": 1,
+    "audio": "/audio/arabe/ta_emphatique.mp3"
+  },
+  {
+    "id": "dha-emphatique",
+    "lettre": "ظ",
+    "translitteration": "Ẓa / Dha",
+    "niveau": 1,
+    "audio": "/audio/arabe/dha_emphatique.mp3"
+  },
+  {
+    "id": "ain",
+    "lettre": "ع",
+    "translitteration": "Ain",
+    "niveau": 1,
+    "audio": "/audio/arabe/ain.mp3"
+  },
+  {
+    "id": "ghain",
+    "lettre": "غ",
+    "translitteration": "Ghain",
+    "niveau": 1,
+    "audio": "/audio/arabe/ghain.mp3"
+  },
+  {
+    "id": "fa",
+    "lettre": "ف",
+    "translitteration": "Fa",
+    "niveau": 1,
+    "audio": "/audio/arabe/fa.mp3"
+  },
+  {
+    "id": "qaf",
+    "lettre": "ق",
+    "translitteration": "Qaf",
+    "niveau": 1,
+    "audio": "/audio/arabe/qaf.mp3"
+  },
+  {
+    "id": "kaf",
+    "lettre": "ك",
+    "translitteration": "Kaf",
+    "niveau": 1,
+    "audio": "/audio/arabe/kaf.mp3"
+  },
+  {
+    "id": "lam",
+    "lettre": "ل",
+    "translitteration": "Lam",
+    "niveau": 1,
+    "audio": "/audio/arabe/lam.mp3"
+  },
+  {
+    "id": "mim",
+    "lettre": "م",
+    "translitteration": "Mim",
+    "niveau": 1,
+    "audio": "/audio/arabe/mim.mp3"
+  },
+  {
+    "id": "nun",
+    "lettre": "ن",
+    "translitteration": "Nun",
+    "niveau": 1,
+    "audio": "/audio/arabe/nun.mp3"
+  },
+  {
+    "id": "ha2",
+    "lettre": "ه",
+    "translitteration": "Ha",
+    "niveau": 1,
+    "audio": "/audio/arabe/ha2.mp3"
+  },
+  {
+    "id": "waw",
+    "lettre": "و",
+    "translitteration": "Waw",
+    "niveau": 1,
+    "audio": "/audio/arabe/waw.mp3"
+  },
+  {
+    "id": "ya",
+    "lettre": "ي",
+    "translitteration": "Ya",
+    "niveau": 1,
+    "audio": "/audio/arabe/ya.mp3"
+  }
+]

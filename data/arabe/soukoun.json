@@ -1,0 +1,191 @@
+[
+  {
+    "id": "ba",
+    "lettre": "ب",
+    "forme": "بْ",
+    "audio": "/audio/arabe/ba_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "ta",
+    "lettre": "ت",
+    "forme": "تْ",
+    "audio": "/audio/arabe/ta_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "tha",
+    "lettre": "ث",
+    "forme": "ثْ",
+    "audio": "/audio/arabe/tha_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "jim",
+    "lettre": "ج",
+    "forme": "جْ",
+    "audio": "/audio/arabe/jim_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "ha",
+    "lettre": "ح",
+    "forme": "حْ",
+    "audio": "/audio/arabe/ha_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "kha",
+    "lettre": "خ",
+    "forme": "خْ",
+    "audio": "/audio/arabe/kha_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "dal",
+    "lettre": "د",
+    "forme": "دْ",
+    "audio": "/audio/arabe/dal_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "dhal",
+    "lettre": "ذ",
+    "forme": "ذْ",
+    "audio": "/audio/arabe/dhal_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "ra",
+    "lettre": "ر",
+    "forme": "رْ",
+    "audio": "/audio/arabe/ra_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "zay",
+    "lettre": "ز",
+    "forme": "زْ",
+    "audio": "/audio/arabe/zay_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "sin",
+    "lettre": "س",
+    "forme": "سْ",
+    "audio": "/audio/arabe/sin_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "shin",
+    "lettre": "ش",
+    "forme": "شْ",
+    "audio": "/audio/arabe/chin_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "sad",
+    "lettre": "ص",
+    "forme": "صْ",
+    "audio": "/audio/arabe/sad_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "dad",
+    "lettre": "ض",
+    "forme": "ضْ",
+    "audio": "/audio/arabe/dad_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "ta-emphatique",
+    "lettre": "ط",
+    "forme": "طْ",
+    "audio": "/audio/arabe/ta_emphatique_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "dha-emphatique",
+    "lettre": "ظ",
+    "forme": "ظْ",
+    "audio": "/audio/arabe/dha_emphatique_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "ain",
+    "lettre": "ع",
+    "forme": "عْ",
+    "audio": "/audio/arabe/ain_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "ghain",
+    "lettre": "غ",
+    "forme": "غْ",
+    "audio": "/audio/arabe/ghain_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "fa",
+    "lettre": "ف",
+    "forme": "فْ",
+    "audio": "/audio/arabe/fa_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "qaf",
+    "lettre": "ق",
+    "forme": "قْ",
+    "audio": "/audio/arabe/qaf_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "kaf",
+    "lettre": "ك",
+    "forme": "كْ",
+    "audio": "/audio/arabe/kaf_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "lam",
+    "lettre": "ل",
+    "forme": "لْ",
+    "audio": "/audio/arabe/lam_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "mim",
+    "lettre": "م",
+    "forme": "مْ",
+    "audio": "/audio/arabe/mim_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "nun",
+    "lettre": "ن",
+    "forme": "نْ",
+    "audio": "/audio/arabe/nun_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "ha2",
+    "lettre": "ه",
+    "forme": "هْ",
+    "audio": "/audio/arabe/ha2_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "waw",
+    "lettre": "و",
+    "forme": "وْ",
+    "audio": "/audio/arabe/waw_soukoun.mp3",
+    "niveau": 3
+  },
+  {
+    "id": "ya",
+    "lettre": "ي",
+    "forme": "يْ",
+    "audio": "/audio/arabe/ya_soukoun.mp3",
+    "niveau": 3
+  }
+]
