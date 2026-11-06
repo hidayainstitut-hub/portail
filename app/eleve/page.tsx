@@ -6,8 +6,9 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { generateSequenceForGroup } from "@/lib/sequence_generator";
 
-   const [menuOpen, setMenuOpen] = useState(false);
-function EspaceEleveContent() {  const searchParams = useSearchParams();
+function EspaceEleveContent() {
+  const searchParams = useSearchParams();
+  const [menuOpen, setMenuOpen] = useState(false);
  const [eleve, setEleve] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
