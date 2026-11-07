@@ -158,7 +158,7 @@ export default function EleveInscriptionPage() {
           <div className="mt-6 animate-in fade-in duration-300">
             <p className="text-center text-xs leading-relaxed text-emerald-900/80 mb-6">
               Ouvrez votre espace personnel pour suivre votre progression en langue arabe, 
-              dans la mémorisation du Qour'an et dans la découverte de la culture islamique.
+              dans la mémorisation du Qour&apos;an et dans la découverte de la culture islamique.
             </p>
 
             <h2 className="text-xl font-bold text-emerald-950 text-center">
@@ -235,7 +235,7 @@ export default function EleveInscriptionPage() {
               📧 Informations de paiement
             </h2>
             <p className="mt-1 text-center text-xs text-emerald-900/80">
-              Indiquez l'adresse courriel qui sera rattachée aux règlements.
+              Indiquez l&apos;adresse courriel qui sera rattachée aux règlements.
             </p>
 
             <div className="mt-6 space-y-4">
@@ -302,7 +302,7 @@ export default function EleveInscriptionPage() {
               🎉 FINI !
             </h2>
             <p className="mt-2 text-xs text-emerald-900/90 leading-relaxed">
-              Ton identifiant te permettra d'accéder à ton espace d'apprentissage Hidaya 
+              Ton identifiant te permettra d&apos;accéder à ton espace d&apos;apprentissage Hidaya
               et de poursuivre ton parcours.
             </p>
 

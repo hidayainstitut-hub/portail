@@ -143,7 +143,7 @@ function EspaceEleveContent() {
                   href="/eleve/qouran"
                   className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-700 text-slate-200 transition"
                 >
-                  📖 Mon Qour'an
+                  📖 Mon Qour&apos;an
                 </Link>
                 <Link
                   href="/eleve/journal"

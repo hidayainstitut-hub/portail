@@ -284,7 +284,7 @@ export default function TeacherDashboard() {
                 : "text-green-900 hover:bg-green-50"
             }`}
           >
-            📖 Suivi Qour'an
+            📖 Suivi Qour&apos;an
           </button>
           <button
             onClick={() => setOngletActif("administration")}
@@ -312,7 +312,7 @@ export default function TeacherDashboard() {
                 Bienvenue, Oum {professeur.nom} ! 👩‍‍🏫
               </h2>
               <p className="mt-3 text-lg text-green-800">
-                N'oublie pas la bonne intention ! Certes, notre bien aimé a dit ((innamal -a3maalou bi n-niyyaat))
+                N&apos;oublie pas la bonne intention ! Certes, notre bien aimé a dit ((innamal -a3maalou bi n-niyyaat))
               </p>
             </div>
 
@@ -526,10 +526,10 @@ export default function TeacherDashboard() {
         {ongletActif === "recitation" && (
           <div className="rounded-3xl bg-white p-8 shadow-sm border border-green-100 space-y-6">
             <h3 className="text-2xl font-bold text-green-900">
-              📖 Gestion et Validation du Qour'an / Récitation ({groupeSelectionne.nom})
+              📖 Gestion et Validation du Qour&apos;an / Récitation ({groupeSelectionne.nom})
             </h3>
             <p className="text-sm text-green-800">
-              Suivi individuel des portions mémorisées. L'élève récite en direct en classe et vous validez sa portion ci-dessous pour mettre à jour sa progression.
+              Suivi individuel des portions mémorisées. L&apos;élève récite en direct en classe et vous validez sa portion ci-dessous pour mettre à jour sa progression.
             </p>
 
             <div className="space-y-4">

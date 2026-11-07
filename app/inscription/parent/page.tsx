@@ -32,9 +32,9 @@ function FormulaireParent() {
       <main className="min-h-screen flex items-center justify-center bg-[#7D9D70] p-6">
         <div className="bg-white/95 backdrop-blur-md p-10 rounded-[2.5rem] text-center max-w-md shadow-2xl border border-[#5C7D50]">
           <Image src="/logo sans fond.png" alt="Logo" width={100} height={60} className="mx-auto mb-4 object-contain" />
-          <h1 className="text-xl font-bold text-red-600">Erreur d'inscription</h1>
+          <h1 className="text-xl font-bold text-red-600">Erreur d&apos;inscription</h1>
           <p className="mt-3 text-sm text-gray-700 leading-relaxed">
-            Aucun groupe n'est spécifié pour l'instant.
+            Aucun groupe n&apos;est spécifié pour l&apos;instant.
           </p>
         </div>
       </main>
@@ -413,10 +413,10 @@ function FormulaireParent() {
         {etape === 5 && (
           <div className="mt-6 animate-in fade-in duration-300 text-center">
             <h2 className="text-2xl font-bold text-emerald-950">
-              🎉 C'est terminé !
+              🎉 C&apos;est terminé !
             </h2>
             <p className="mt-2 text-xs text-emerald-900/90 leading-relaxed">
-              Voici votre nom d'utilisateur unique pour vous connecter à votre espace parent :
+              Voici votre nom d&apos;utilisateur unique pour vous connecter à votre espace parent :
             </p>
 
             <div className="mt-6 rounded-2xl bg-white/90 border border-emerald-800/20 p-5 shadow-sm">

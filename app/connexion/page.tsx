@@ -45,12 +45,6 @@ export default function ConnexionPage() {
 
   return (
     <>
-      
-        
-          href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        
-      
       <main 
         className="relative min-h-screen flex items-center justify-center overflow-hidden px-4 py-8"
         style={{ 
@@ -212,7 +206,7 @@ export default function ConnexionPage() {
               href="/"
               className="text-xs font-bold text-emerald-800 hover:underline"
             >
-              ← Retour à l'accueil
+              ← Retour à l&apos;accueil
             </Link>
           </div>
 

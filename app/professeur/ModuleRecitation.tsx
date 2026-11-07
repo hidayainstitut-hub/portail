@@ -53,7 +53,7 @@ export default function ModuleRecitation() {
       <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
         <div>
           <h2 className="text-xl font-bold text-emerald-900">Suivi des Récitations & Devoirs</h2>
-          <p className="text-sm text-gray-500">Évaluez la prestation de l'élève en direct</p>
+          <p className="text-sm text-gray-500">Évaluez la prestation de l&apos;élève en direct</p>
         </div>
         <span className="bg-emerald-50 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full border border-emerald-200">
           Groupe A
@@ -107,7 +107,7 @@ export default function ModuleRecitation() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Axes d'amélioration / Fautes observées :</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Axes d&apos;amélioration / Fautes observées :</label>
           <div className="grid grid-cols-2 gap-2">
             {typesDeFautes.map((faute) => {
               const estCoche = eleveActuel.fautes.includes(faute.label);

@@ -2,16 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 
 export default function InscriptionPage() {
-  return 
+  return (
     <>
-      
-        
-          href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-      
-      
-
-      <main 
+      <main
         className="relative min-h-screen flex items-center justify-center overflow-hidden px-4 py-8"
         style={{ 
           backgroundColor: "#7D9D70", // Vert sauge vif et lumineux
@@ -66,7 +59,7 @@ export default function InscriptionPage() {
 
           {/* Texte d'accueil */}
           <p className="mt-4 text-sm sm:text-base leading-relaxed text-emerald-950/90 max-w-md mx-auto font-light">
-            Bienvenue à Hidaya Institut. Ouvrez votre espace personnel afin de commencer votre parcours d'apprentissage de la langue arabe, du Qour'an et de la culture islamique.
+            Bienvenue à Hidaya Institut. Ouvrez votre espace personnel afin de commencer votre parcours d&apos;apprentissage de la langue arabe, du Qour&apos;an et de la culture islamique.
           </p>
 
           {/* Question */}
@@ -97,12 +90,12 @@ export default function InscriptionPage() {
               href="/"
               className="text-xs font-bold text-emerald-800 hover:underline"
             >
-              ← Retour à l'accueil
+              ← Retour à l&apos;accueil
             </Link>
           </div>
 
         </div>
       </main>
     </>
-  
+  );
 }

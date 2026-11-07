@@ -4,13 +4,6 @@ import Link from "next/link";
 export default function Home() {
   return (
     <>
-      
-        <link
-          href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-      
-
       <main 
         className="relative min-h-screen flex items-center justify-center overflow-hidden px-4 py-8"
         style={{ 
@@ -79,8 +72,8 @@ export default function Home() {
 
           {/* Description */}
           <p className="mt-6 text-base sm:text-lg leading-relaxed text-emerald-950/90 max-w-lg mx-auto font-light">
-            Votre institut virtuel dédié à l'apprentissage 
-            de la langue arabe, du Qour'an et de la science islamique, où chaque élève avance à son rythme.
+            Votre institut virtuel dédié à l&apos;apprentissage
+            de la langue arabe, du Qour&apos;an et de la science islamique, où chaque élève avance à son rythme.
           </p>
 
           {/* Boutons d'action */}
