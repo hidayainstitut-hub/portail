@@ -36,6 +36,17 @@ interface EleveRecitation {
   validated: boolean;
 }
 
+interface RegistrationRequest {
+  id: string;
+  parent_nom: string;
+  parent_prenom: string;
+  email: string;
+  telephone: string | null;
+  children: Array<{ prenom: string; groupe: string }>;
+  status: string;
+  created_at: string;
+}
+
 export default function TeacherDashboard() {
   // Données du professeur connecté
   const professeur = {
@@ -71,6 +82,8 @@ export default function TeacherDashboard() {
   // --- GESTION DES PARENTS INSCRITS ---
   const [parentsInscrits, setParentsInscrits] = useState<ParentInscrit[]>([]);
   const [parentEdite, setParentEdite] = useState<ParentInscrit | null>(null);
+  const [demandesInscription, setDemandesInscription] = useState<RegistrationRequest[]>([]);
+  const [traitementDemande, setTraitementDemande] = useState<string | null>(null);
 
  // --- GESTION DES PARENTS ET ELEVES DEPUIS SUPABASE ---
   useEffect(() => {
@@ -102,6 +115,41 @@ export default function TeacherDashboard() {
     fetchDonneesSupabase();
   }, []);
 
+  useEffect(() => {
+    async function fetchDemandesInscription() {
+      const { data, error } = await supabase
+        .from("registration_requests")
+        .select("id, parent_nom, parent_prenom, email, telephone, children, status, created_at")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
+
+      if (!error) {
+        setDemandesInscription((data ?? []) as RegistrationRequest[]);
+      }
+    }
+
+    fetchDemandesInscription();
+  }, []);
+
+  async function traiterDemande(requestId: string, action: "approve" | "reject") {
+    if (traitementDemande) return;
+    setTraitementDemande(requestId);
+
+    const functionName = action === "approve"
+      ? "approve_registration"
+      : "reject_registration";
+    const { error } = await supabase.rpc(functionName, { request_id: requestId });
+
+    if (error) {
+      alert(error.message);
+    } else {
+      setDemandesInscription((demandes) =>
+        demandes.filter((demande) => demande.id !== requestId)
+      );
+    }
+    setTraitementDemande(null);
+  }
+
   const sauvegarderModification = (parentMisAJour: ParentInscrit) => {
     const nouveauxParents = parentsInscrits.map(p => 
       p.id === parentMisAJour.id ? parentMisAJour : p
@@ -132,11 +180,6 @@ export default function TeacherDashboard() {
       notionsActuelles: "Sourate An-Naba' (versets 1-20)",
       notionsARevoir: "Makharij des lettres (ح et خ)",
       elevesCount: 8,
-      eleves: [
-        { id: 101, prenom: "Ibrahim", parent: "Karim El Amrani", present: true, statutPresence: "Présent", recitation: "Juz Amma - P. 5 validée" },
-        { id: 102, prenom: "Maryam", parent: "Fatima Zahra", present: true, statutPresence: "Retard (10 min)", recitation: "Juz Amma - P. 3 en cours" },
-        { id: 103, prenom: "Youssef", parent: "Ahmed Benali", present: false, statutPresence: "Absent", recitation: "Juz Amma - P. 2 validée" },
-      ]
     },
     {
       id: 2,
@@ -148,9 +191,6 @@ export default function TeacherDashboard() {
       notionsActuelles: "Sourate Al-Mulk",
       notionsARevoir: "Règles du Noon Sakinah",
       elevesCount: 6,
-      eleves: [
-        { id: 201, prenom: "Ayoub", parent: "Samir K.", present: true, statutPresence: "Présent", recitation: "Juz Tabaraka - P. 1 en cours" }
-      ]
     },
     {
       id: 3,
@@ -162,7 +202,6 @@ export default function TeacherDashboard() {
       notionsActuelles: "Sourate Al-Waqi'ah",
       notionsARevoir: "Madd Lazim",
       elevesCount: 5,
-      eleves: []
     },
     {
       id: 4,
@@ -174,7 +213,6 @@ export default function TeacherDashboard() {
       notionsActuelles: "Apprentissage des bases du Coran",
       notionsARevoir: "Reconnaissance des lettres",
       elevesCount: 4,
-      eleves: []
     }
   ]);
 
@@ -306,13 +344,133 @@ export default function TeacherDashboard() {
     alert(`Portion validée pour ${eleve.prenom} ${eleve.nom}.`);
   };
 
-  // État pour la gestion rapide des présences
-  const [presences, setPresences] = useState<{ [key: number]: string }>(
-    Object.fromEntries(groupes[0].eleves.map(e => [e.id, e.statutPresence]))
-  );
+  interface EleveAppel {
+    id: string;
+    prenom: string;
+    nom: string;
+    parent: string;
+  }
 
-  const modifierPresence = (eleveId: number, statut: string) => {
-    setPresences(prev => ({ ...prev, [eleveId]: statut }));
+  const today = new Date();
+  const dateDuJour = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  const [dateAppel, setDateAppel] = useState(dateDuJour);
+  const [elevesAppel, setElevesAppel] = useState<EleveAppel[]>([]);
+  const [loadingAppel, setLoadingAppel] = useState(false);
+  const [presences, setPresences] = useState<Record<string, "Présent" | "Absent">>({});
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function chargerAppel() {
+      setLoadingAppel(true);
+
+      const { data: eleves, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, prenom, nom, parent_id, group_id, groupeId, groupeNom, groupe, role")
+        .eq("role", "student");
+
+      if (error || !eleves) {
+        if (!ignore) {
+          setElevesAppel([]);
+          setPresences({});
+          setLoadingAppel(false);
+        }
+        return;
+      }
+
+      const elevesDuGroupe = eleves.filter((profile) =>
+        String(profile.group_id ?? profile.groupeId ?? "") === String(groupeSelectionne.id) ||
+        String(profile.groupeNom ?? profile.groupe ?? "") === groupeSelectionne.nom
+      );
+
+      const parentIds = elevesDuGroupe
+        .map((eleve) => eleve.parent_id)
+        .filter((id): id is string => Boolean(id));
+
+      let parents: Array<{ id: string; full_name?: string; prenom?: string; nom?: string; telephone?: string; email?: string }> = [];
+      if (parentIds.length > 0) {
+        const { data: parentsData } = await supabase
+          .from("profiles")
+          .select("id, full_name, prenom, nom, telephone, email")
+          .in("id", parentIds);
+        parents = parentsData ?? [];
+      }
+
+      const parentsParId = new Map(parents.map((parent) => [String(parent.id), parent]));
+      const listeEleves = elevesDuGroupe.map((profile) => {
+        const fullName = String(profile.full_name ?? "").trim();
+        const prenom = String(profile.prenom ?? fullName.split(" ")[0] ?? "Élève").trim();
+        const nom = String(profile.nom ?? fullName.split(" ").slice(1).join(" ") ?? "").trim();
+        const parent = profile.parent_id ? parentsParId.get(String(profile.parent_id)) : undefined;
+        const parentNom = parent
+          ? String(parent.full_name ?? [parent.prenom, parent.nom].filter(Boolean).join(" ") ?? "").trim()
+          : "";
+        const contact = parent
+          ? [parentNom, parent.telephone, parent.email].filter(Boolean).join(" · ")
+          : "Contact non renseigné";
+
+        return { id: String(profile.id), prenom, nom, parent: contact };
+      });
+
+      const ids = listeEleves.map((eleve) => eleve.id);
+      let records: Array<{ student_id: string; status: string }> = [];
+      if (ids.length > 0) {
+        const { data } = await supabase
+          .from("attendances")
+          .select("student_id, status")
+          .eq("group_id", String(groupeSelectionne.id))
+          .eq("attendance_date", dateAppel)
+          .in("student_id", ids);
+        records = data ?? [];
+      }
+
+      const statutParEleve: Record<string, "Présent" | "Absent"> = {};
+      for (const record of records) {
+        if (record.status === "Présent" || record.status === "Absent") {
+          statutParEleve[String(record.student_id)] = record.status;
+        }
+      }
+
+      if (!ignore) {
+        setElevesAppel(listeEleves);
+        setPresences(statutParEleve);
+        setLoadingAppel(false);
+      }
+    }
+
+    chargerAppel();
+
+    const channel = supabase
+      .channel(`attendances-${groupeSelectionne.id}-${dateAppel}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "attendances" },
+        () => chargerAppel()
+      )
+      .subscribe();
+
+    return () => {
+      ignore = true;
+      supabase.removeChannel(channel);
+    };
+  }, [groupeSelectionne, dateAppel]);
+
+  const modifierPresence = async (eleveId: string, statut: "Présent" | "Absent") => {
+    setPresences((current) => ({ ...current, [eleveId]: statut }));
+
+    const { error } = await supabase.from("attendances").upsert(
+      {
+        student_id: eleveId,
+        group_id: String(groupeSelectionne.id),
+        attendance_date: dateAppel,
+        status: statut,
+      },
+      { onConflict: "student_id,group_id,attendance_date" }
+    );
+
+    if (error) {
+      alert(`Impossible d'enregistrer la présence : ${error.message}`);
+    }
   };
 
   // Base de données simulée des comptes-rendus par date (Format 'YYYY-MM-DD')
@@ -444,7 +602,7 @@ export default function TeacherDashboard() {
           <div className="mt-4 space-y-3">
             <div className="rounded-2xl bg-green-50 p-3">
               <p className="font-semibold text-green-900 text-sm">Absence signalée</p>
-              <p className="text-xs text-green-700 mt-1">Youssef Benali sera absent ce samedi.</p>
+              <p className="text-xs text-green-700 mt-1">Les absences enregistrées apparaîtront ici.</p>
             </div>
           </div>
         </div>
@@ -578,7 +736,6 @@ export default function TeacherDashboard() {
                       key={g.id}
                       onClick={() => {
                         setGroupeSelectionne(g);
-                        setPresences(Object.fromEntries(g.eleves.map(e => [e.id, e.statutPresence])));
                       }}
                       className={`rounded-xl px-4 py-2 font-semibold text-sm transition ${
                         groupeSelectionne.id === g.id
@@ -608,7 +765,19 @@ export default function TeacherDashboard() {
               </div>
 
               <div className="mt-10">
-                <h4 className="text-xl font-bold text-green-900 mb-4">📋 Appel & Présences rapides</h4>
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <h4 className="text-xl font-bold text-green-900">📋 Appel & Présences rapides</h4>
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="date-appel" className="text-sm font-semibold text-green-700">Date de l&apos;appel</label>
+                    <input
+                      id="date-appel"
+                      type="date"
+                      value={dateAppel}
+                      onChange={(e) => setDateAppel(e.target.value)}
+                      className="rounded-xl border border-green-300 bg-white px-3 py-2 text-sm font-semibold text-green-950 outline-none focus:border-green-700"
+                    />
+                  </div>
+                </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
@@ -616,26 +785,36 @@ export default function TeacherDashboard() {
                         <th className="py-3 px-4">Élève</th>
                         <th className="py-3 px-4">Parent contact</th>
                         <th className="py-3 px-4">Présence</th>
-                        <th className="py-3 px-4">Suivi Récitation</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-green-50">
-                      {groupeSelectionne.eleves.map((eleve) => (
+                      {loadingAppel ? (
+                        <tr>
+                          <td colSpan={3} className="py-6 px-4 text-center text-sm text-green-700">
+                            Chargement des élèves...
+                          </td>
+                        </tr>
+                      ) : elevesAppel.length === 0 ? (
+                        <tr>
+                          <td colSpan={3} className="py-6 px-4 text-center text-sm text-green-700">
+                            Aucun élève connecté à ce groupe.
+                          </td>
+                        </tr>
+                      ) : elevesAppel.map((eleve) => (
                         <tr key={eleve.id} className="text-green-900 hover:bg-green-50/20">
-                          <td className="py-4 px-4 font-bold">👦 {eleve.prenom}</td>
+                          <td className="py-4 px-4 font-bold">👦 {[eleve.prenom, eleve.nom].filter(Boolean).join(" ")}</td>
                           <td className="py-4 px-4 text-sm text-green-700">{eleve.parent}</td>
                           <td className="py-4 px-4">
                             <select
-                              value={presences[eleve.id] || "Présent"}
-                              onChange={(e) => modifierPresence(eleve.id, e.target.value)}
+                              value={presences[eleve.id] ?? ""}
+                              onChange={(e) => modifierPresence(eleve.id, e.target.value as "Présent" | "Absent")}
                               className="rounded-xl border border-green-200 bg-white px-3 py-1.5 text-sm font-semibold outline-none focus:border-green-700"
                             >
+                              <option value="">Sélectionner</option>
                               <option value="Présent">✅ Présent</option>
-                              <option value="Retard">⏰ Retard</option>
                               <option value="Absent">❌ Absent</option>
                             </select>
                           </td>
-                          <td className="py-4 px-4 text-sm text-green-800">{eleve.recitation}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -857,6 +1036,54 @@ export default function TeacherDashboard() {
             <p className="text-sm text-green-700">
               Consultez et modifiez les informations des parents inscrits enregistrés dans le système.
             </p>
+
+            <div className="rounded-2xl border border-amber-100 bg-amber-50/40 p-5">
+              <h4 className="text-lg font-bold text-green-900">Demandes en attente</h4>
+              {demandesInscription.length === 0 ? (
+                <p className="mt-3 text-sm text-green-800">Aucune demande en attente.</p>
+              ) : (
+                <div className="mt-4 space-y-3">
+                  {demandesInscription.map((demande) => (
+                    <div key={demande.id} className="rounded-xl bg-white p-4 shadow-sm">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <p className="font-bold text-green-900">
+                            {demande.parent_prenom} {demande.parent_nom}
+                          </p>
+                          <p className="text-sm text-green-700">{demande.email}</p>
+                          {demande.telephone && (
+                            <p className="text-sm text-green-700">{demande.telephone}</p>
+                          )}
+                          {Array.isArray(demande.children) && demande.children.length > 0 && (
+                            <p className="mt-2 text-xs text-green-700">
+                              Enfants : {demande.children.map((enfant) =>
+                                `${enfant.prenom} (${enfant.groupe})`
+                              ).join(", ")}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => traiterDemande(demande.id, "approve")}
+                            disabled={traitementDemande === demande.id}
+                            className="rounded-xl bg-green-700 px-4 py-2 text-xs font-bold text-white hover:bg-green-800 disabled:opacity-50"
+                          >
+                            Approuver
+                          </button>
+                          <button
+                            onClick={() => traiterDemande(demande.id, "reject")}
+                            disabled={traitementDemande === demande.id}
+                            className="rounded-xl border border-red-300 px-4 py-2 text-xs font-bold text-red-700 hover:bg-red-50 disabled:opacity-50"
+                          >
+                            Rejeter
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {parentsInscrits.length === 0 ? (
               <div className="rounded-2xl bg-green-50/50 p-6 text-center border border-green-100">

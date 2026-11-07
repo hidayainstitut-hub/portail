@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 interface CourseReport {
@@ -12,6 +13,7 @@ interface CourseReport {
 }
 
 export default function ParentDashboard() {
+  const router = useRouter();
   const [reports, setReports] = useState<CourseReport[]>([]);
   const [parentName, setParentName] = useState("");
   const [childrenNames, setChildrenNames] = useState<string[]>([]);
@@ -30,9 +32,15 @@ export default function ParentDashboard() {
 
       const { data: parentProfile } = await supabase
         .from("profiles")
-        .select("full_name")
+        .select("full_name, role")
         .eq("id", userData.user.id)
         .maybeSingle();
+
+      if (!parentProfile || parentProfile.role !== "parent") {
+        await supabase.auth.signOut();
+        router.replace("/connexion");
+        return;
+      }
 
       setParentName(parentProfile?.full_name ?? "");
 
@@ -86,7 +94,7 @@ export default function ParentDashboard() {
     }
 
     fetchReports();
-  }, []);
+  }, [router]);
 
   return (
     <main className="min-h-screen bg-green-50 px-6 py-10">

@@ -2,22 +2,19 @@
 
 import { useState, Suspense } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 function FormulaireParent() {
-  const router = useRouter();
-
   const [etape, setEtape] = useState(1);
   const [nom, setNom] = useState("");
   const [prenom, setPrenom] = useState("");
-  const [dateNaissanceParent, setDateNaissanceParent] = useState("");
+  const [demandeEnvoyee, setDemandeEnvoyee] = useState(false);
+  const [envoiEnCours, setEnvoiEnCours] = useState(false);
 
   const [enfants, setEnfants] = useState([
     {
-      nom: "",
       prenom: "",
-      naissance: "",
+      groupe: "",
     },
   ]);
 
@@ -26,50 +23,12 @@ function FormulaireParent() {
   const [motDePasse, setMotDePasse] = useState("");
   const [confirmation, setConfirmation] = useState("");
 
-  // Si aucun groupe n'est spécifié dans l'URL, on affiche un message d'erreur bloquant
-   {
-    return (
-      <main className="min-h-screen flex items-center justify-center bg-[#7D9D70] p-6">
-        <div className="bg-white/95 backdrop-blur-md p-10 rounded-[2.5rem] text-center max-w-md shadow-2xl border border-[#5C7D50]">
-          <Image src="/logo sans fond.png" alt="Logo" width={100} height={60} className="mx-auto mb-4 object-contain" />
-          <h1 className="text-xl font-bold text-red-600">Erreur d&apos;inscription</h1>
-          <p className="mt-3 text-sm text-gray-700 leading-relaxed">
-            Aucun groupe n&apos;est spécifié pour l&apos;instant.
-          </p>
-        </div>
-      </main>
-    );
-  }
-
-  function calculerAge(date: string) {
-    const naissance = new Date(date);
-    const aujourdHui = new Date();
-
-    let age = aujourdHui.getFullYear() - naissance.getFullYear();
-    const mois = aujourdHui.getMonth() - naissance.getMonth();
-
-    if (
-      mois < 0 ||
-      (mois === 0 && aujourdHui.getDate() < naissance.getDate())
-    ) {
-      age--;
-    }
-
-    return age;
-  }
-
-  function genererIdentifiant() {
-    if (!prenom || !nom) return "prenom.nom@hidaya";
-    return `${prenom.trim().toLowerCase()}.${nom.trim().toLowerCase()}@hidaya`;
-  }
-
   function ajouterEnfant() {
     setEnfants([
       ...enfants,
       {
-        nom: "",
         prenom: "",
-        naissance: "",
+        groupe: "",
       },
     ]);
   }
@@ -89,31 +48,32 @@ function FormulaireParent() {
 
   function continuer() {
     if (etape === 1) {
-      if (!nom || !prenom || !dateNaissanceParent) {
+      if (!nom.trim() || !prenom.trim()) {
         alert("Veuillez remplir tous les champs obligatoires.");
         return;
       }
-
-      if (calculerAge(dateNaissanceParent) < 18) {
-        alert(
-          "Un compte parent est réservé aux personnes âgées de 18 ans et plus."
-        );
-        return;
-      }
     }
 
-    if (etape === 3 && (!telephone || !courriel)) {
-      alert("Veuillez remplir vos coordonnées de contact.");
+    if (etape === 2 && enfants.some((enfant) => !enfant.prenom.trim() || !enfant.groupe.trim())) {
+      alert("Veuillez saisir le prénom et le groupe de chaque enfant.");
       return;
     }
 
-    if (etape === 4 && (!motDePasse || motDePasse !== confirmation)) {
-      alert("Veuillez vérifier vos mots de passe.");
+    if (
+      etape === 3 &&
+      (!courriel.trim() ||
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(courriel.trim()) ||
+        motDePasse.length < 6 ||
+        motDePasse !== confirmation)
+    ) {
+      alert("Veuillez saisir une adresse courriel valide et un mot de passe de 6 caractères minimum, puis confirmer celui-ci.");
       return;
     }
 
-    if (etape < 5) {
+    if (etape < 3) {
       setEtape(etape + 1);
+    } else {
+      terminer();
     }
   }
 
@@ -124,49 +84,56 @@ function FormulaireParent() {
   }
 
   async function terminer() {
-  try {
-    // 1. Enregistrer le parent dans la table 'profiles'
-    const { data: parentData, error: parentError } = await supabase
-      .from("profiles")
-      .insert([
-        {
-          nom,
-          prenom,
-          telephone,
-          email: courriel,
-          role: "parent",
+    if (envoiEnCours) return;
+    setEnvoiEnCours(true);
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: courriel.trim(),
+        password: motDePasse,
+        options: {
+          data: {
+            nom: nom.trim(),
+            prenom: prenom.trim(),
+            full_name: `${prenom.trim()} ${nom.trim()}`,
+            role: "pending",
+            children: enfants.map((enfant) => ({
+              prenom: enfant.prenom.trim(),
+              groupe: enfant.groupe.trim(),
+            })),
+            telephone: telephone.trim(),
+          },
         },
-      ])
-      .select()
-      .single();
+      });
 
-    if (parentError) throw parentError;
+      if (error) throw error;
+      if (!data.user) throw new Error("Le compte n'a pas pu être créé.");
+      await supabase.auth.signOut();
+      setDemandeEnvoyee(true);
+    } catch (error: unknown) {
+      console.error("Erreur lors de l'inscription :", error);
+      alert(error instanceof Error ? error.message : "Une erreur est survenue lors de l'inscription.");
+    } finally {
+      setEnvoiEnCours(false);
+    }
+  }
 
-    // 2. Si le parent a des enfants, les enregistrer dans 'profiles'
-    if (enfants && enfants.length > 0) {
-      const enfantsAInserer = enfants.map((enfant: any) => ({
-        nom: enfant.nom,
-        prenom: enfant.prenom,
-        role: "student",
-        parent_id: parentData.id, // Relie l'enfant au parent
-      }));
-
-      const { error: enfantsError } = await supabase
-        .from("profiles")
-        .insert(enfantsAInserer);
-
-      if (enfantsError) throw enfantsError;
+    if (demandeEnvoyee) {
+      return (
+        <main className="min-h-screen flex items-center justify-center bg-[#7D9D70] p-6">
+          <div className="w-full max-w-md rounded-[2.5rem] border border-[#5C7D50] bg-white/95 p-10 text-center shadow-2xl">
+            <Image src="/logo sans fond.png" alt="Logo" width={120} height={70} className="mx-auto mb-5 object-contain" />
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-3xl">✓</div>
+            <h1 className="mt-5 text-2xl font-bold text-emerald-950">Demande reçue</h1>
+            <p className="mt-3 text-sm leading-relaxed text-emerald-900">
+              Votre demande d&apos;inscription a bien été reçue ! Votre compte sera activé par l&apos;administration sous peu.
+            </p>
+          </div>
+        </main>
+      );
     }
 
-    alert("Inscription réussie ! Bienvenue sur votre portail Hidaya Institut.");
-    router.push("/parent");
-  } catch (error: any) {
-    console.error("Erreur lors de l'inscription :", error);
-    alert("Une erreur est survenue lors de l'inscription : " + error.message);
-  }
-}
-
-  return (
+    return (
     <main
       className="relative min-h-screen flex items-center justify-center overflow-hidden px-4 py-8"
       style={{
@@ -257,18 +224,6 @@ function FormulaireParent() {
                   className="w-full rounded-2xl border border-emerald-800/40 bg-white px-4 py-3 text-sm text-emerald-950 placeholder-emerald-800/50 outline-none focus:ring-2 focus:ring-emerald-900 shadow-sm"
                 />
               </div>
-
-              <div>
-                <label className="block mb-1.5 text-xs font-bold text-emerald-950">
-                  📅 Date de naissance
-                </label>
-                <input
-                  value={dateNaissanceParent}
-                  onChange={(e) => setDateNaissanceParent(e.target.value)}
-                  type="date"
-                  className="w-full rounded-2xl border border-emerald-800/40 bg-white px-4 py-3 text-sm text-emerald-950 outline-none focus:ring-2 focus:ring-emerald-900 shadow-sm"
-                />
-              </div>
             </div>
           </div>
         )}
@@ -288,16 +243,6 @@ function FormulaireParent() {
                 <div key={index} className="p-4 rounded-2xl bg-white/70 border border-emerald-800/20 space-y-3 shadow-sm">
                   <p className="text-xs font-bold text-emerald-900">Enfant #{index + 1}</p>
                   <div>
-                    <label className="block mb-1 text-xs font-semibold text-emerald-950">Nom</label>
-                    <input
-                      type="text"
-                      value={enfant.nom}
-                      onChange={(e) => modifierEnfant(index, "nom", e.target.value)}
-                      placeholder="Nom de l'enfant"
-                      className="w-full rounded-xl border border-emerald-800/30 bg-white px-3 py-2 text-sm text-emerald-950 outline-none focus:ring-2 focus:ring-emerald-900"
-                    />
-                  </div>
-                  <div>
                     <label className="block mb-1 text-xs font-semibold text-emerald-950">Prénom</label>
                     <input
                       type="text"
@@ -308,13 +253,18 @@ function FormulaireParent() {
                     />
                   </div>
                   <div>
-                    <label className="block mb-1 text-xs font-semibold text-emerald-950">Date de naissance</label>
-                    <input
-                      type="date"
-                      value={enfant.naissance}
-                      onChange={(e) => modifierEnfant(index, "naissance", e.target.value)}
+                    <label className="block mb-1 text-xs font-semibold text-emerald-950">Groupe souhaité</label>
+                    <select
+                      value={enfant.groupe}
+                      onChange={(e) => modifierEnfant(index, "groupe", e.target.value)}
                       className="w-full rounded-xl border border-emerald-800/30 bg-white px-3 py-2 text-sm text-emerald-950 outline-none focus:ring-2 focus:ring-emerald-900"
-                    />
+                    >
+                      <option value="">Sélectionner un groupe</option>
+                      <option value="Groupe A">Groupe A</option>
+                      <option value="Groupe B">Groupe B</option>
+                      <option value="Groupe C">Groupe C</option>
+                      <option value="Groupe D">Groupe D</option>
+                    </select>
                   </div>
                 </div>
               ))}
@@ -365,21 +315,6 @@ function FormulaireParent() {
                   className="w-full rounded-2xl border border-emerald-800/40 bg-white px-4 py-3 text-sm text-emerald-950 placeholder-emerald-800/50 outline-none focus:ring-2 focus:ring-emerald-900 shadow-sm"
                 />
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* ================= ETAPE 4 ================= */}
-        {etape === 4 && (
-          <div className="mt-6 animate-in fade-in duration-300">
-            <h2 className="text-xl font-bold text-emerald-950 text-center">
-              🔐 Sécurité du compte
-            </h2>
-            <p className="mt-1 text-center text-xs text-emerald-900/80">
-              Choisissez un mot de passe sécurisé.
-            </p>
-
-            <div className="mt-6 space-y-4">
               <div>
                 <label className="block mb-1.5 text-xs font-bold text-emerald-950">
                   Mot de passe
@@ -388,11 +323,9 @@ function FormulaireParent() {
                   type="password"
                   value={motDePasse}
                   onChange={(e) => setMotDePasse(e.target.value)}
-                  placeholder="Votre mot de passe"
-                  className="w-full rounded-2xl border border-emerald-800/40 bg-white px-4 py-3 text-sm text-emerald-950 placeholder-emerald-800/50 outline-none focus:ring-2 focus:ring-emerald-900 shadow-sm"
+                  className="w-full rounded-2xl border border-emerald-800/40 bg-white px-4 py-3 text-sm text-emerald-950 outline-none focus:ring-2 focus:ring-emerald-900 shadow-sm"
                 />
               </div>
-
               <div>
                 <label className="block mb-1.5 text-xs font-bold text-emerald-950">
                   Confirmation du mot de passe
@@ -401,31 +334,9 @@ function FormulaireParent() {
                   type="password"
                   value={confirmation}
                   onChange={(e) => setConfirmation(e.target.value)}
-                  placeholder="Confirmer le mot de passe"
-                  className="w-full rounded-2xl border border-emerald-800/40 bg-white px-4 py-3 text-sm text-emerald-950 placeholder-emerald-800/50 outline-none focus:ring-2 focus:ring-emerald-900 shadow-sm"
+                  className="w-full rounded-2xl border border-emerald-800/40 bg-white px-4 py-3 text-sm text-emerald-950 outline-none focus:ring-2 focus:ring-emerald-900 shadow-sm"
                 />
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* ================= ETAPE 5 ================= */}
-        {etape === 5 && (
-          <div className="mt-6 animate-in fade-in duration-300 text-center">
-            <h2 className="text-2xl font-bold text-emerald-950">
-              🎉 C&apos;est terminé !
-            </h2>
-            <p className="mt-2 text-xs text-emerald-900/90 leading-relaxed">
-              Voici votre nom d&apos;utilisateur unique pour vous connecter à votre espace parent :
-            </p>
-
-            <div className="mt-6 rounded-2xl bg-white/90 border border-emerald-800/20 p-5 shadow-sm">
-              <p className="text-xs font-bold text-emerald-900">
-                Votre identifiant :
-              </p>
-              <p className="mt-2 text-xl font-bold text-emerald-800 break-all">
-                {genererIdentifiant()}
-              </p>
             </div>
           </div>
         )}
@@ -436,18 +347,18 @@ function FormulaireParent() {
             <div
               className="h-full bg-emerald-900 transition-all duration-500"
               style={{
-                width: `${(etape / 5) * 100}%`,
+                width: `${(etape / 3) * 100}%`,
               }}
             />
           </div>
           <p className="mt-2 text-center text-xs font-bold text-emerald-900">
-            Étape {etape} sur 5
+            Étape {etape} sur 3
           </p>
         </div>
 
         {/* ================= BOUTONS ================= */}
         <div className="mt-6 flex gap-3">
-          {etape > 1 && etape < 5 && (
+          {etape > 1 && (
             <button
               onClick={retour}
               className="flex-1 rounded-2xl border-2 border-emerald-900 py-3 text-xs font-bold text-emerald-950 hover:bg-emerald-50 transition shadow-sm"
@@ -456,7 +367,7 @@ function FormulaireParent() {
             </button>
           )}
 
-          {etape < 5 && (
+          {etape < 3 && (
             <button
               onClick={continuer}
               className="flex-1 rounded-2xl bg-emerald-900 py-3 text-xs font-bold text-white hover:bg-emerald-950 transition shadow-lg shadow-emerald-950/20"
@@ -465,12 +376,13 @@ function FormulaireParent() {
             </button>
           )}
 
-          {etape === 5 && (
+          {etape === 3 && (
             <button
               onClick={terminer}
+              disabled={envoiEnCours}
               className="w-full rounded-2xl bg-emerald-900 py-3 text-xs font-bold text-white hover:bg-emerald-950 transition shadow-lg shadow-emerald-950/20"
             >
-              Accéder à mon espace
+              {envoiEnCours ? "Envoi en cours..." : "S'inscrire"}
             </button>
           )}
         </div>

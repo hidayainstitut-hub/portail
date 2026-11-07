@@ -39,8 +39,34 @@ export default function ConnexionPage() {
       localStorage.setItem("user", JSON.stringify(data.user));
     }
 
-    // Redirection vers le tableau de bord
-    router.push("/professeur");
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", data.user.id)
+      .maybeSingle();
+
+    if (profileError) {
+      setErreur("Impossible de vérifier le statut de votre compte.");
+      await supabase.auth.signOut();
+      return;
+    }
+
+    if (!profile || !profile.role || profile.role === "pending") {
+      setErreur("Votre demande est en attente de validation par l'administration.");
+      await supabase.auth.signOut();
+      return;
+    }
+
+    if (profile.role === "parent") {
+      router.push("/parent");
+    } else if (profile.role === "student") {
+      router.push("/eleve");
+    } else if (profile.role === "prof" || profile.role === "teacher" || profile.role === "professeur") {
+      router.push("/professeur");
+    } else {
+      setErreur("Votre rôle n'est pas encore autorisé à accéder au portail.");
+      await supabase.auth.signOut();
+    }
   };
 
   return (

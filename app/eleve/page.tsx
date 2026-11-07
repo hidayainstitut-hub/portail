@@ -3,10 +3,11 @@ export const dynamic = "force-dynamic"; //
 import { supabase } from "@/lib/supabase";
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { generateSequenceForGroup } from "@/lib/sequence_generator";
 
 function EspaceEleveContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [menuOpen, setMenuOpen] = useState(false);
   const [eleve, setEleve] = useState<{
@@ -40,6 +41,11 @@ function EspaceEleveContent() {
             .single();
 
           if (data && !error) {
+            if (data.role !== "student") {
+              await supabase.auth.signOut();
+              router.replace("/connexion");
+              return;
+            }
             setEleve({
               id: String(data.id),
               full_name: String(data.full_name ?? ""),
@@ -58,7 +64,7 @@ function EspaceEleveContent() {
     }
     
     chargerProfilEleve();
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (!eleve) return;
