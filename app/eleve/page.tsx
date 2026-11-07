@@ -9,8 +9,24 @@ import { generateSequenceForGroup } from "@/lib/sequence_generator";
 function EspaceEleveContent() {
   const searchParams = useSearchParams();
   const [menuOpen, setMenuOpen] = useState(false);
- const [eleve, setEleve] = useState<any>(null);
+  const [eleve, setEleve] = useState<{
+    id: string;
+    full_name: string;
+    group_id: string | null;
+    groupeId: string | null;
+    groupeNom: string | null;
+    groupe: string | null;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [quranProgress, setQuranProgress] = useState<Record<string, unknown> | null>(null);
+  const [courseReports, setCourseReports] = useState<Array<{
+    id: string;
+    summary: string;
+    homework: string | null;
+    course_date: string;
+    resource_url: string | null;
+    exercise_type: string | null;
+  }>>([]);
 
   useEffect(() => {
     async function chargerProfilEleve() {
@@ -19,12 +35,19 @@ function EspaceEleveContent() {
         if (user) {
           const { data, error } = await supabase
             .from("profiles")
-            .select("*")
+            .select("id, full_name, group_id, groupeId, groupeNom, groupe, role")
             .eq("id", user.id)
             .single();
 
           if (data && !error) {
-            setEleve(data);
+            setEleve({
+              id: String(data.id),
+              full_name: String(data.full_name ?? ""),
+              group_id: data.group_id ?? null,
+              groupeId: data.groupeId ?? null,
+              groupeNom: data.groupeNom ?? null,
+              groupe: data.groupe ?? null,
+            });
           }
         }
       } catch (err) {
@@ -37,6 +60,65 @@ function EspaceEleveContent() {
     chargerProfilEleve();
   }, []);
 
+  useEffect(() => {
+    if (!eleve) return;
+
+    const groupIds = [
+      eleve.groupeId,
+      eleve.groupeNom,
+      eleve.groupe,
+      eleve.group_id,
+      searchParams.get("groupe"),
+    ]
+      .filter((value): value is string => typeof value === "string" && value.length > 0)
+      .map((value) => String(value));
+
+    if (groupIds.length === 0) return;
+
+    async function fetchCourseReports() {
+      const { data, error } = await supabase
+        .from("course_reports")
+        .select("id, summary, homework, course_date, group_id, resource_url, exercise_type")
+        .eq("is_published", true)
+        .in("group_id", [...new Set(groupIds)])
+        .order("course_date", { ascending: false })
+        .limit(5);
+
+      if (!error && data) {
+        setCourseReports(data);
+      }
+    }
+
+    async function fetchQuranProgress() {
+      const { data, error } = await supabase
+        .from("quran_progress")
+        .select("*")
+        .eq("student_id", eleve.id)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!error && data) {
+        setQuranProgress(data);
+      } else {
+        const fallback = await supabase
+          .from("quran_progress")
+          .select("*")
+          .eq("profile_id", eleve.id)
+          .order("updated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (!fallback.error && fallback.data) {
+          setQuranProgress(fallback.data);
+        }
+      }
+    }
+
+    fetchCourseReports();
+    fetchQuranProgress();
+  }, [eleve, searchParams]);
+
   if (loading) {
     return <div className="flex h-screen items-center justify-center">Chargement de votre espace...</div>;
   }
@@ -46,7 +128,13 @@ function EspaceEleveContent() {
 
 
   // 1. Récupération du groupe transmis (ex: ?groupe=groupe-a) - Par défaut Groupe A
-  const groupeQuery = searchParams.get("groupe") || "groupe-a";
+  const groupeQuery =
+    searchParams.get("groupe") ||
+    eleve.groupeNom ||
+    eleve.groupe ||
+    eleve.groupeId ||
+    eleve.group_id ||
+    "groupe-a";
 
   // 2. Génération dynamique de la séquence pédagogique pour ce groupe
   const sequenceData = generateSequenceForGroup(groupeQuery);
@@ -74,27 +162,23 @@ function EspaceEleveContent() {
               🧭 Hidaya Aventure
             </h1>
             <p className="text-xs text-slate-400">
-              {eleve.nom} • <span className="text-emerald-300 font-semibold">{eleve.groupeNom}</span>
+              {eleve.full_name || "Élève"} • <span className="text-emerald-300 font-semibold">{eleve.groupeNom || eleve.groupe || eleve.group_id || "Groupe non renseigné"}</span>
             </p>
           </div>
         </div>
 
-        {/* STATS RAPIDES */}
+        {/* PROGRESSION RÉELLE */}
         <div className="flex items-center gap-2 sm:gap-4 text-sm font-semibold">
           <div className="flex items-center gap-1 bg-amber-500/10 border border-amber-500/30 text-amber-400 px-2.5 py-1 rounded-full">
-            <span>🔥</span>
-            <span>{eleve.streak} sem</span>
+            <span>📖</span>
+            <span>{String(quranProgress?.current_juz ?? quranProgress?.juz ?? "Juz non renseigné")}</span>
           </div>
 
           <div className="flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-2.5 py-1 rounded-full">
-            <span>⭐</span>
-            <span>{eleve.etoiles}</span>
+            <span>📄</span>
+            <span>Page {String(quranProgress?.current_page ?? quranProgress?.page ?? "—")}</span>
           </div>
 
-          <div className="hidden sm:flex items-center gap-1 bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 px-3 py-1 rounded-full">
-            <span>🏆</span>
-            <span>{eleve.points} pts</span>
-          </div>
         </div>
       </header>
 
@@ -111,11 +195,13 @@ function EspaceEleveContent() {
               <div className="flex items-center justify-between border-b border-slate-700 pb-4 mb-6">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-400 flex items-center justify-center font-bold text-emerald-300">
-                    {eleve.nom[0]}
+                    {(eleve.full_name || "E").charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <p className="font-bold text-slate-100">{eleve.nom}</p>
-                    <p className="text-xs text-emerald-400">{eleve.groupeNom} • Rang {eleve.rang}</p>
+                    <p className="font-bold text-slate-100">{eleve.full_name || "Élève"}</p>
+                    <p className="text-xs text-emerald-400">
+                      {eleve.groupeNom || eleve.groupe || eleve.group_id || "Groupe non renseigné"}
+                    </p>
                   </div>
                 </div>
                 <button
@@ -186,7 +272,7 @@ function EspaceEleveContent() {
               Guide Hidaya ✨
             </h2>
             <p className="text-xs text-slate-300 mt-0.5">
-              « As-Salamou ^Alaykoum {eleve.nom} ! Tu es dans le <strong className="text-emerald-400">{eleve.groupeNom}</strong>.
+              « As-Salamou ^Alaykoum {eleve.full_name || "Élève"} ! Tu es dans le <strong className="text-emerald-400">{eleve.groupeNom || eleve.groupe || eleve.group_id || "ton groupe"}</strong>.
               Voici la capsule de révision préparée par ton enseignant.e ! »
             </p>
           </div>
@@ -195,10 +281,55 @@ function EspaceEleveContent() {
 
       {/* 🗺️ CARTE D'AVENTURE DYNAMIQUE SELON LE GROUPE */}
       <main className="flex-1 max-w-xl w-full mx-auto p-4 flex flex-col items-center justify-center relative">
+        <section className="w-full rounded-2xl border border-slate-700/80 bg-slate-800/60 p-5 shadow-xl mb-2">
+          <h2 className="mb-4 font-bold text-emerald-400">📝 Comptes-rendus récents</h2>
+          {courseReports.length === 0 ? (
+            <p className="text-sm text-slate-400">Aucun compte-rendu publié pour votre groupe.</p>
+          ) : (
+            <div className="space-y-3">
+              {courseReports.map((report) => (
+                <article key={report.id} className="rounded-xl border border-slate-700 bg-slate-900/60 p-4">
+                  <p className="mb-2 text-xs font-semibold text-emerald-300">
+                    {new Date(report.course_date).toLocaleDateString("fr-FR")}
+                  </p>
+                  <p className="text-sm text-slate-200">{report.summary}</p>
+                  {report.homework && (
+                    <p className="mt-2 text-sm text-amber-300">
+                      <strong>Devoir :</strong> {report.homework}
+                    </p>
+                  )}
+                  {(report.resource_url || report.exercise_type) && (
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      {report.resource_url && (
+                        <a
+                          href={report.resource_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-emerald-500"
+                        >
+                          📄 Ouvrir le support (PDF/Vidéo)
+                        </a>
+                      )}
+                      {report.exercise_type && (
+                        <Link
+                          href={`/eleve/exercices?type=${encodeURIComponent(report.exercise_type)}&report=${encodeURIComponent(report.id)}`}
+                          className="rounded-xl bg-amber-400 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-amber-300"
+                        >
+                          🎮 Faire l&apos;exercice interactif
+                        </Link>
+                      )}
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+
         <div className="w-full bg-slate-800/60 border border-slate-700/80 rounded-2xl p-6 shadow-2xl relative overflow-hidden my-4 backdrop-blur-sm">
           <div className="text-center mb-6">
             <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
-              Capsule : {eleve.groupeNom}
+              Capsule : {eleve.groupeNom || eleve.groupe || eleve.group_id || "Groupe non renseigné"}
             </span>
             <h2 className="text-xl font-bold text-slate-100 mt-2">{seanceTitre}</h2>
             <p className="text-xs text-slate-400 mt-1">
@@ -256,10 +387,10 @@ function EspaceEleveContent() {
         {/* 🚀 BOUTON D'ACTION ADAPTÉ AU GROUPE */}
         <div className="w-full max-w-xl sticky bottom-4 z-20 px-2">
           <Link
-            href={`/test-session?groupe=${eleve.groupeId}`}
+            href={`/test-session?groupe=${encodeURIComponent(eleve.group_id || eleve.groupeId || eleve.groupeNom || eleve.groupe || "")}`}
             className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-lg shadow-xl shadow-emerald-500/25 flex items-center justify-center gap-3 transition-transform active:scale-95 border border-emerald-300"
           >
-            ▶ LANCER LA CAPSULE ({eleve.groupeNom}) ➔
+            ▶ LANCER LA CAPSULE ({eleve.groupeNom || eleve.groupe || eleve.group_id || "Groupe"}) ➔
           </Link>
         </div>
       </main>

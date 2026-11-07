@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
 interface EleveSuivi {
   id: string;
@@ -9,16 +10,97 @@ interface EleveSuivi {
   etoiles: number;
   fautes: string[];
   commentaire: string;
+  currentJuz?: string;
+  currentPage?: string;
+  statut?: string;
 }
 
-export default function ModuleRecitation() {
-  const [eleves, setEleves] = useState<EleveSuivi[]>([
-    { id: "1", nom: "Benali", prenom: "Youssef", etoiles: 0, fautes: [], commentaire: "" },
-    { id: "2", nom: "El Amrani", prenom: "Fatima", etoiles: 0, fautes: [], commentaire: "" },
-    { id: "3", nom: "Kaddour", prenom: "Ibrahim", etoiles: 0, fautes: [], commentaire: "" },
-  ]);
+interface ModuleRecitationProps {
+  groupId?: string;
+  groupName?: string;
+}
 
-  const [eleveSelectionneId, setEleveSelectionneId] = useState<string>("1");
+export default function ModuleRecitation({
+  groupId = "",
+  groupName = "Groupe",
+}: ModuleRecitationProps) {
+  const [eleves, setEleves] = useState<EleveSuivi[]>([]);
+  const [eleveSelectionneId, setEleveSelectionneId] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function chargerEleves() {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("role", "student");
+
+      if (error || !data) {
+        setEleves([]);
+        setLoading(false);
+        return;
+      }
+
+      const elevesFiltres = data.filter((profile) => {
+        if (!groupId && !groupName) return true;
+        return (
+          String(profile.group_id ?? profile.groupeId ?? "") === String(groupId) ||
+          String(profile.groupeNom ?? profile.groupe ?? "") === groupName
+        );
+      });
+
+      const ids = elevesFiltres.map((profile) => String(profile.id));
+      let progressions: Record<string, Record<string, unknown>> = {};
+
+      if (ids.length > 0) {
+        const { data: progressData } = await supabase
+          .from("recitation_progress")
+          .select("*")
+          .in("student_id", ids)
+          .order("validated_at", { ascending: false });
+
+        progressions = Object.fromEntries(
+          (progressData ?? []).map((progress) => [
+            String(progress.student_id ?? progress.profile_id),
+            progress,
+          ])
+        );
+      }
+
+      const elevesDynamiques = elevesFiltres.map((profile) => {
+        const progression = progressions[String(profile.id)];
+        const currentJuz = String(
+          profile.current_juz ?? profile.juz ?? progression?.current_juz ?? progression?.juz ?? "Juz Amma"
+        );
+        const currentPage = String(
+          profile.current_page ?? profile.page ?? progression?.current_page ?? progression?.page ?? "1"
+        );
+
+        return {
+          id: String(profile.id),
+          nom: String(profile.nom ?? profile.last_name ?? ""),
+          prenom: String(profile.prenom ?? profile.first_name ?? "Élève"),
+          etoiles: Number(progression?.stars ?? profile.etoiles ?? 0),
+          fautes: Array.isArray(progression?.fautes) ? progression.fautes : [],
+          commentaire: String(progression?.commentaire ?? ""),
+          currentJuz,
+          currentPage,
+          statut: String(progression?.status ?? `${currentJuz} - P. ${currentPage} en cours`),
+        };
+      });
+
+      setEleves(elevesDynamiques);
+      setEleveSelectionneId((current) =>
+        elevesDynamiques.some((eleve) => eleve.id === current)
+          ? current
+          : elevesDynamiques[0]?.id ?? ""
+      );
+      setLoading(false);
+    }
+
+    chargerEleves();
+  }, [groupId, groupName]);
 
   const typesDeFautes = [
     { id: "makhraj", label: "Prononciation (Makhraj)" },
@@ -44,7 +126,33 @@ export default function ModuleRecitation() {
     setEleves(eleves.map((e) => (e.id === eleveActuel.id ? { ...e, commentaire: texte } : e)));
   };
 
-  const sauvegarderSuivi = () => {
+  const sauvegarderSuivi = async () => {
+    if (!eleveActuel) return;
+
+    const status = `${eleveActuel.currentJuz ?? "Juz Amma"} - P. ${eleveActuel.currentPage ?? "1"} validée`;
+    const { error } = await supabase.from("recitation_progress").insert({
+      student_id: eleveActuel.id,
+      group_id: groupId || null,
+      current_juz: eleveActuel.currentJuz ?? "Juz Amma",
+      current_page: eleveActuel.currentPage ?? "1",
+      status,
+      validated: true,
+      stars: eleveActuel.etoiles,
+      fautes: eleveActuel.fautes,
+      commentaire: eleveActuel.commentaire,
+      validated_at: new Date().toISOString(),
+    });
+
+    if (error) {
+      alert(`Impossible d'enregistrer la validation : ${error.message}`);
+      return;
+    }
+
+    setEleves((current) =>
+      current.map((eleve) =>
+        eleve.id === eleveActuel.id ? { ...eleve, statut: status } : eleve
+      )
+    );
     alert(`Suivi enregistré avec succès pour ${eleveActuel.prenom} ${eleveActuel.nom} !`);
   };
 
@@ -56,12 +164,17 @@ export default function ModuleRecitation() {
           <p className="text-sm text-gray-500">Évaluez la prestation de l&apos;élève en direct</p>
         </div>
         <span className="bg-emerald-50 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full border border-emerald-200">
-          Groupe A
+          {groupName || "Groupe"}
         </span>
       </div>
 
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">Sélectionner un élève :</label>
+        {loading ? (
+          <p className="text-sm text-gray-500">Chargement des élèves...</p>
+        ) : eleves.length === 0 ? (
+          <p className="text-sm text-gray-500">Aucun élève trouvé pour ce groupe.</p>
+        ) : null}
         <div className="grid grid-cols-3 gap-2">
           {eleves.map((el) => (
             <button

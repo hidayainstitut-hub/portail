@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, type FormEvent } from "react";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { supabase } from "@/lib/supabase";
 
 interface ParentInscrit {
@@ -22,12 +23,50 @@ interface ParentInscrit {
   }[];
 }
 
+interface EleveRecitation {
+  id: string;
+  prenom: string;
+  nom: string;
+  groupeId?: string | null;
+  groupeNom?: string | null;
+  groupe?: string | null;
+  currentJuz: string;
+  currentPage: string;
+  status: string;
+  validated: boolean;
+}
+
 export default function TeacherDashboard() {
   // Données du professeur connecté
   const professeur = {
     prenom: "Oum",
     nom: "Aisha",
   };
+
+  const hidaya = "hidaya.institut.montreal@gmail.com";
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function recupererSession() {
+      const { data, error } = await supabase.auth.getSession();
+
+      if (ignore) return;
+
+      if (!error) {
+        setUserEmail(data.session?.user.email ?? null);
+      } else {
+        setUserEmail(null);
+      }
+    }
+
+    recupererSession();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   // --- GESTION DES PARENTS INSCRITS ---
   const [parentsInscrits, setParentsInscrits] = useState<ParentInscrit[]>([]);
@@ -142,6 +181,131 @@ export default function TeacherDashboard() {
   // État pour la sélection d'un groupe actif dans l'onglet Groupes / Présences
   const [groupeSelectionne, setGroupeSelectionne] = useState(groupes[0]);
 
+  const [elevesRecitation, setElevesRecitation] = useState<EleveRecitation[]>([]);
+  const [loadingRecitation, setLoadingRecitation] = useState(false);
+  const [validationEnCours, setValidationEnCours] = useState<string | null>(null);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function chargerElevesRecitation() {
+      setLoadingRecitation(true);
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("role", "student");
+
+      if (ignore) return;
+
+      if (error || !data) {
+        setElevesRecitation([]);
+        setLoadingRecitation(false);
+        return;
+      }
+
+      const groupeId = String(groupeSelectionne.id);
+      const elevesDuGroupe = data.filter((profile) =>
+        String(profile.group_id ?? profile.groupeId ?? "") === groupeId ||
+        String(profile.groupeNom ?? profile.groupe ?? "") === groupeSelectionne.nom
+      );
+
+      const ids = elevesDuGroupe.map((profile) => String(profile.id));
+      let progressions: Record<string, Record<string, unknown>> = {};
+
+      if (ids.length > 0) {
+        const { data: progressData } = await supabase
+          .from("recitation_progress")
+          .select("*")
+          .in("student_id", ids)
+          .order("validated_at", { ascending: false });
+
+        progressions = Object.fromEntries(
+          (progressData ?? []).map((progress) => [
+            String(progress.student_id ?? progress.profile_id),
+            progress,
+          ])
+        );
+      }
+
+      const elevesDynamiques = elevesDuGroupe.map((profile) => {
+        const progression = progressions[String(profile.id)];
+        const currentJuz = String(
+          profile.current_juz ?? profile.juz ?? progression?.current_juz ?? progression?.juz ?? "Juz Amma"
+        );
+        const currentPage = String(
+          profile.current_page ?? profile.page ?? progression?.current_page ?? progression?.page ?? "1"
+        );
+        const status = String(
+          profile.recitation_status ?? progression?.status ?? `${currentJuz} - P. ${currentPage} en cours`
+        );
+
+        return {
+          id: String(profile.id),
+          prenom: String(profile.prenom ?? profile.first_name ?? "Élève"),
+          nom: String(profile.nom ?? profile.last_name ?? ""),
+          groupeId: profile.group_id ?? profile.groupeId ?? null,
+          groupeNom: profile.groupeNom ?? profile.groupe ?? null,
+          groupe: profile.groupe ?? null,
+          currentJuz,
+          currentPage,
+          status,
+          validated: Boolean(progression?.validated ?? profile.recitation_validated),
+        };
+      });
+
+      if (!ignore) setElevesRecitation(elevesDynamiques);
+      setLoadingRecitation(false);
+    }
+
+    chargerElevesRecitation();
+
+    const channel = supabase
+      .channel(`recitation-progress-${groupeSelectionne.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "recitation_progress" },
+        () => {
+          chargerElevesRecitation();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      ignore = true;
+      supabase.removeChannel(channel);
+    };
+  }, [groupeSelectionne]);
+
+  const validerPortion = async (eleve: EleveRecitation) => {
+    setValidationEnCours(eleve.id);
+
+    const status = `${eleve.currentJuz} - P. ${eleve.currentPage} validée`;
+    const { error } = await supabase.from("recitation_progress").insert({
+      student_id: eleve.id,
+      group_id: String(groupeSelectionne.id),
+      current_juz: eleve.currentJuz,
+      current_page: eleve.currentPage,
+      status,
+      validated: true,
+      validated_at: new Date().toISOString(),
+    });
+
+    if (error) {
+      alert(`Impossible d'enregistrer la validation : ${error.message}`);
+      setValidationEnCours(null);
+      return;
+    }
+
+    setElevesRecitation((eleves) =>
+      eleves.map((item) =>
+        item.id === eleve.id ? { ...item, status, validated: true } : item
+      )
+    );
+    setValidationEnCours(null);
+    alert(`Portion validée pour ${eleve.prenom} ${eleve.nom}.`);
+  };
+
   // État pour la gestion rapide des présences
   const [presences, setPresences] = useState<{ [key: number]: string }>(
     Object.fromEntries(groupes[0].eleves.map(e => [e.id, e.statutPresence]))
@@ -171,6 +335,49 @@ export default function TeacherDashboard() {
 
   // Date sélectionnée (par défaut aujourd'hui au format YYYY-MM-DD)
   const [dateSelectionnee, setDateSelectionnee] = useState<string>("2026-10-03");
+
+  const supabaseClient = createClientComponentClient();
+  const [groupId, setGroupId] = useState<string>("1");
+  const [summary, setSummary] = useState<string>("");
+  const [homework, setHomework] = useState<string>("");
+  const [resourceUrl, setResourceUrl] = useState<string>("");
+  const [exerciseType, setExerciseType] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const handlePublish = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!groupId || !summary.trim()) {
+      alert("Sélectionnez un groupe et renseignez le résumé de la séance.");
+      return;
+    }
+
+    setLoading(true);
+
+    const { error } = await supabaseClient.from("course_reports").insert({
+      group_id: groupId,
+      summary: summary.trim(),
+      homework: homework.trim(),
+      course_date: dateSelectionnee,
+      is_published: true,
+      resource_url: resourceUrl.trim() || null,
+      exercise_type: exerciseType || null,
+    });
+
+    setLoading(false);
+
+    if (error) {
+      alert(`Erreur lors de l'enregistrement : ${error.message}`);
+      return;
+    }
+
+    mettreAJourCompteRendu("publie", true);
+    alert("Compte-rendu publié avec succès aux élèves et aux parents !");
+    setSummary("");
+    setHomework("");
+    setResourceUrl("");
+    setExerciseType("");
+  };
 
   // Récupérer ou initialiser le compte-rendu pour la date sélectionnée
   const compteRenduActuel = comptesRendusParDate[dateSelectionnee] || {
@@ -255,37 +462,40 @@ export default function TeacherDashboard() {
             }`}
           >
             🏠 Accueil
-          </button>
-          <button
-            onClick={() => setOngletActif("groupes")}
-            className={`rounded-xl px-5 py-3 font-semibold transition ${
-              ongletActif === "groupes"
-                ? "bg-green-700 text-white"
-                : "text-green-900 hover:bg-green-50"
-            }`}
-          >
-            👥 Mes Groupes & Élèves
-          </button>
-          <button
-            onClick={() => setOngletActif("seances")}
-            className={`rounded-xl px-5 py-3 font-semibold transition ${
-              ongletActif === "seances"
-                ? "bg-green-700 text-white"
-                : "text-green-900 hover:bg-green-50"
-            }`}
-          >
-            📅 Séances & Compte-rendus
-          </button>
-          <button
-            onClick={() => setOngletActif("recitation")}
-            className={`rounded-xl px-5 py-3 font-semibold transition ${
-              ongletActif === "recitation"
-                ? "bg-green-700 text-white"
-                : "text-green-900 hover:bg-green-50"
-            }`}
-          >
-            📖 Suivi Qour&apos;an
-          </button>
+        </button>
+        <button
+          onClick={() => setOngletActif("groupes")}
+          className={`rounded-xl px-5 py-3 font-semibold transition ${
+            ongletActif === "groupes"
+              ? "bg-green-700 text-white"
+              : "text-green-900 hover:bg-green-50"
+          }`}
+        >
+          👥 Mes Groupes & Élèves
+        </button>
+        <button
+          onClick={() => setOngletActif("seances")}
+          className={`rounded-xl px-5 py-3 font-semibold transition ${
+            ongletActif === "seances"
+              ? "bg-green-700 text-white"
+              : "text-green-900 hover:bg-green-50"
+          }`}
+        >
+          📅 Séances & Compte-rendus
+        </button>
+        <button
+          onClick={() => setOngletActif("recitation")}
+          className={`rounded-xl px-5 py-3 font-semibold transition ${
+            ongletActif === "recitation"
+              ? "bg-green-700 text-white"
+              : "text-green-900 hover:bg-green-50"
+          }`}
+        >
+          📖 Suivi Qour&apos;an
+        </button>
+
+        {/* Bouton Administration visible UNIQUEMENT pour le mail officiel de l'école */}
+        {userEmail?.toLowerCase() === hidaya.toLowerCase() && (
           <button
             onClick={() => setOngletActif("administration")}
             className={`rounded-xl px-5 py-3 font-semibold transition ${
@@ -296,8 +506,9 @@ export default function TeacherDashboard() {
           >
             ⚙️ Administration
           </button>
-        </div>
+        )}
       </div>
+    </div>
 
       {/* Contenu dynamique selon l'onglet actif */}
       <div className="mx-auto max-w-7xl px-6 mt-8 space-y-8">
@@ -309,7 +520,7 @@ export default function TeacherDashboard() {
           <>
             <div className="rounded-3xl bg-white p-8 shadow-sm border border-green-100">
               <h2 className="text-3xl font-bold text-green-900">
-                Bienvenue, Oum {professeur.nom} ! 👩‍‍🏫
+                Bienvenue, {professeur.nom} ! 
               </h2>
               <p className="mt-3 text-lg text-green-800">
                 N&apos;oublie pas la bonne intention ! Certes, notre bien aimé a dit ((innamal -a3maalou bi n-niyyaat))
@@ -459,7 +670,7 @@ export default function TeacherDashboard() {
                     type="date"
                     value={dateSelectionnee}
                     onChange={(e) => setDateSelectionnee(e.target.value)}
-                    className="mt-1 bg-white border border-green-300 rounded-xl px-3 py-1.5 text-sm font-semibold text-green-900 outline-none focus:border-green-700 shadow-sm cursor-pointer"
+                    className="mt-1 bg-white border border-green-300 rounded-xl px-3 py-1.5 text-sm font-semibold text-green-950 placeholder:text-green-700/50 outline-none focus:border-green-700 shadow-sm cursor-pointer"
                   />
                 </div>
               </div>
@@ -467,12 +678,26 @@ export default function TeacherDashboard() {
 
             <div className="grid gap-6 md:grid-cols-2">
               <div>
+                <label className="text-sm font-semibold text-green-700">Groupe concerné</label>
+                <select
+                  value={groupId}
+                  onChange={(e) => setGroupId(e.target.value)}
+                  className="mt-2 w-full rounded-2xl border border-green-200 bg-white p-3 outline-none focus:border-green-700"
+                >
+                  {groupes.map((groupe) => (
+                    <option key={groupe.id} value={String(groupe.id)}>
+                      {groupe.nom}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
                 <label className="text-sm font-semibold text-green-700">Titre de la séance</label>
                 <input
                   type="text"
                   value={compteRenduActuel.titre}
                   onChange={(e) => mettreAJourCompteRendu("titre", e.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-green-200 p-3 outline-none focus:border-green-700"
+                  className="mt-2 w-full rounded-2xl border border-green-200 p-3 text-green-950 placeholder:text-green-700/50 outline-none focus:border-green-700"
                 />
               </div>
               <div>
@@ -481,7 +706,7 @@ export default function TeacherDashboard() {
                   type="text"
                   value={compteRenduActuel.notionsTravaillees}
                   onChange={(e) => mettreAJourCompteRendu("notionsTravaillees", e.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-green-200 p-3 outline-none focus:border-green-700"
+                  className="mt-2 w-full rounded-2xl border border-green-200 p-3 text-green-950 placeholder:text-green-700/50 outline-none focus:border-green-700"
                 />
               </div>
             </div>
@@ -492,7 +717,7 @@ export default function TeacherDashboard() {
                 rows={3}
                 value={compteRenduActuel.resume}
                 onChange={(e) => mettreAJourCompteRendu("resume", e.target.value)}
-                className="mt-2 w-full rounded-2xl border border-green-200 p-3 outline-none focus:border-green-700"
+                className="mt-2 w-full rounded-2xl border border-green-200 p-3 text-green-950 placeholder:text-green-700/50 outline-none focus:border-green-700"
               />
             </div>
 
@@ -502,9 +727,64 @@ export default function TeacherDashboard() {
                 rows={2}
                 value={compteRenduActuel.devoirs}
                 onChange={(e) => mettreAJourCompteRendu("devoirs", e.target.value)}
-                className="mt-2 w-full rounded-2xl border border-green-200 p-3 outline-none focus:border-green-700"
+                className="mt-2 w-full rounded-2xl border border-green-200 p-3 text-green-950 placeholder:text-green-700/50 outline-none focus:border-green-700"
               />
             </div>
+
+            <form onSubmit={handlePublish} className="space-y-4 rounded-2xl border border-green-100 bg-green-50/50 p-6">
+              <h4 className="text-lg font-bold text-green-900">📝 Publier aux élèves et aux parents</h4>
+              <div>
+                <label className="block text-sm font-semibold text-green-700">Résumé de la séance</label>
+                <textarea
+                  value={summary}
+                  onChange={(e) => setSummary(e.target.value)}
+                  rows={4}
+                  required
+                  className="mt-2 w-full rounded-2xl border border-green-200 bg-white p-3 text-green-950 placeholder:text-green-700/50 outline-none focus:border-green-700"
+                  placeholder="Qu'est-ce qui a été étudié aujourd'hui ?"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-green-700">Devoirs / prochaine séance</label>
+                <input
+                  type="text"
+                  value={homework}
+                  onChange={(e) => setHomework(e.target.value)}
+                  className="mt-2 w-full rounded-2xl border border-green-200 bg-white p-3 text-green-950 placeholder:text-green-700/50 outline-none focus:border-green-700"
+                  placeholder="Ex. : apprendre les sourates..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-green-700">Lien vers une ressource</label>
+                <input
+                  type="url"
+                  value={resourceUrl}
+                  onChange={(e) => setResourceUrl(e.target.value)}
+                  className="mt-2 w-full rounded-2xl border border-green-200 bg-white p-3 text-green-950 placeholder:text-green-700/50 outline-none focus:border-green-700"
+                  placeholder="https://.../support.pdf"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-green-700">Exercice interactif</label>
+                <select
+                  value={exerciseType}
+                  onChange={(e) => setExerciseType(e.target.value)}
+                  className="mt-2 w-full rounded-2xl border border-green-200 bg-white p-3 text-green-950 outline-none focus:border-green-700"
+                >
+                  <option value="">Aucun exercice</option>
+                  <option value="recitation">Récitation</option>
+                  <option value="quiz">Quiz</option>
+                  <option value="revision">Révision</option>
+                </select>
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-2xl bg-green-700 px-8 py-3 font-semibold text-white shadow-md transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading ? "Envoi en cours..." : "Envoyer aux élèves et parents"}
+              </button>
+            </form>
 
             <div className="pt-4 flex items-center justify-between border-t border-green-100">
               <span className="text-sm font-semibold text-emerald-700">
@@ -533,15 +813,33 @@ export default function TeacherDashboard() {
             </p>
 
             <div className="space-y-4">
-              {groupeSelectionne.eleves.map((eleve) => (
+              {loadingRecitation && (
+                <p className="text-sm font-semibold text-green-700">Chargement des élèves...</p>
+              )}
+              {!loadingRecitation && elevesRecitation.length === 0 && (
+                <p className="rounded-2xl bg-green-50 p-5 text-sm font-semibold text-green-700">
+                  Aucun élève trouvé pour ce groupe.
+                </p>
+              )}
+              {elevesRecitation.map((eleve) => (
                 <div key={eleve.id} className="flex flex-wrap items-center justify-between rounded-2xl bg-green-50/40 p-5 border border-green-100 gap-4">
                   <div>
-                    <h4 className="font-bold text-lg text-green-900">👦 {eleve.prenom}</h4>
-                    <p className="text-sm text-green-700 mt-0.5">Statut actuel : {eleve.recitation}</p>
+                    <h4 className="font-bold text-lg text-green-900">👦 {eleve.prenom} {eleve.nom}</h4>
+                    <p className="text-sm text-green-700 mt-0.5">
+                      Statut actuel : {eleve.status}
+                    </p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <button className="rounded-xl bg-green-700 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-green-800 transition">
-                      Valider la portion ✔
+                    <button
+                      onClick={() => validerPortion(eleve)}
+                      disabled={validationEnCours === eleve.id}
+                      className="rounded-xl bg-green-700 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-green-800 transition disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {validationEnCours === eleve.id
+                        ? "Enregistrement..."
+                        : eleve.validated
+                          ? "Portion validée ✔"
+                          : "Valider la portion ✔"}
                     </button>
                   </div>
                 </div>
@@ -553,7 +851,7 @@ export default function TeacherDashboard() {
         {/* ========================================================= */}
         {/* ONGLET 5 : ADMINISTRATION */}
         {/* ========================================================= */}
-        {ongletActif === "administration" && (
+        {ongletActif === "administration" && userEmail?.toLowerCase() === hidaya.toLowerCase() && (
           <div className="rounded-3xl bg-white p-8 shadow-sm border border-green-100 space-y-6">
             <h3 className="text-2xl font-bold text-green-900">⚙️ Administration - Gestion des Inscriptions</h3>
             <p className="text-sm text-green-700">
