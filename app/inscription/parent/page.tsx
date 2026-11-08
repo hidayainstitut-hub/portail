@@ -14,7 +14,6 @@ function FormulaireParent() {
   const [enfants, setEnfants] = useState([
     {
       prenom: "",
-      groupe: "",
     },
   ]);
 
@@ -28,7 +27,6 @@ function FormulaireParent() {
       ...enfants,
       {
         prenom: "",
-        groupe: "",
       },
     ]);
   }
@@ -54,8 +52,8 @@ function FormulaireParent() {
       }
     }
 
-    if (etape === 2 && enfants.some((enfant) => !enfant.prenom.trim() || !enfant.groupe.trim())) {
-      alert("Veuillez saisir le prénom et le groupe de chaque enfant.");
+    if (etape === 2 && enfants.some((enfant) => !enfant.prenom.trim())) {
+      alert("Veuillez saisir le prénom de chaque enfant.");
       return;
     }
 
@@ -99,7 +97,6 @@ function FormulaireParent() {
             role: "pending",
             children: enfants.map((enfant) => ({
               prenom: enfant.prenom.trim(),
-              groupe: enfant.groupe.trim(),
             })),
             telephone: telephone.trim(),
           },
@@ -252,20 +249,6 @@ function FormulaireParent() {
                       className="w-full rounded-xl border border-emerald-800/30 bg-white px-3 py-2 text-sm text-emerald-950 outline-none focus:ring-2 focus:ring-emerald-900"
                     />
                   </div>
-                  <div>
-                    <label className="block mb-1 text-xs font-semibold text-emerald-950">Groupe souhaité</label>
-                    <select
-                      value={enfant.groupe}
-                      onChange={(e) => modifierEnfant(index, "groupe", e.target.value)}
-                      className="w-full rounded-xl border border-emerald-800/30 bg-white px-3 py-2 text-sm text-emerald-950 outline-none focus:ring-2 focus:ring-emerald-900"
-                    >
-                      <option value="">Sélectionner un groupe</option>
-                      <option value="Groupe A">Groupe A</option>
-                      <option value="Groupe B">Groupe B</option>
-                      <option value="Groupe C">Groupe C</option>
-                      <option value="Groupe D">Groupe D</option>
-                    </select>
-                  </div>
                 </div>
               ))}
 
@@ -292,7 +275,7 @@ function FormulaireParent() {
             <div className="mt-6 space-y-4">
               <div>
                 <label className="block mb-1.5 text-xs font-bold text-emerald-950">
-                  Numéro WhatsApp / Téléphone
+                  Numéro WhatsApp
                 </label>
                 <input
                   type="tel"
