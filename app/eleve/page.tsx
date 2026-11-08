@@ -28,6 +28,12 @@ function EspaceEleveContent() {
     resource_url: string | null;
     exercise_type: string | null;
   }>>([]);
+  const [agendaCourses, setAgendaCourses] = useState<Array<{
+    id: string;
+    title: string;
+    scheduled_at: string;
+    group_name: string;
+  }>>([]);
 
   useEffect(() => {
     async function chargerProfilEleve() {
@@ -95,6 +101,19 @@ function EspaceEleveContent() {
       }
     }
 
+    async function fetchAgendaCourses() {
+      const { data, error } = await supabase
+        .from("courses")
+        .select("id, title, scheduled_at, group_name")
+        .gte("scheduled_at", new Date().toISOString())
+        .order("scheduled_at", { ascending: true })
+        .limit(20);
+
+      if (!error && data) {
+        setAgendaCourses(data);
+      }
+    }
+
     async function fetchQuranProgress() {
       const { data, error } = await supabase
         .from("quran_progress")
@@ -122,6 +141,7 @@ function EspaceEleveContent() {
     }
 
     fetchCourseReports();
+    fetchAgendaCourses();
     fetchQuranProgress();
   }, [eleve, searchParams]);
 
@@ -287,6 +307,26 @@ function EspaceEleveContent() {
 
       {/* 🗺️ CARTE D'AVENTURE DYNAMIQUE SELON LE GROUPE */}
       <main className="flex-1 max-w-xl w-full mx-auto p-4 flex flex-col items-center justify-center relative">
+        <section className="w-full rounded-2xl border border-slate-700/80 bg-slate-800/60 p-5 shadow-xl mb-2">
+          <h2 className="mb-4 font-bold text-emerald-400">📅 Agenda des cours</h2>
+          {agendaCourses.length === 0 ? (
+            <p className="text-sm text-slate-400">Aucun cours planifié pour votre groupe.</p>
+          ) : (
+            <div className="space-y-3">
+              {agendaCourses.map((course) => (
+                <article key={course.id} className="rounded-xl border border-slate-700 bg-slate-900/60 p-4">
+                  <p className="font-bold text-slate-100">{course.title}</p>
+                  <p className="mt-1 text-xs text-emerald-300">
+                    {course.group_name} · {new Date(course.scheduled_at).toLocaleString("fr-FR", {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })}
+                  </p>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
         <section className="w-full rounded-2xl border border-slate-700/80 bg-slate-800/60 p-5 shadow-xl mb-2">
           <h2 className="mb-4 font-bold text-emerald-400">📝 Comptes-rendus récents</h2>
           {courseReports.length === 0 ? (

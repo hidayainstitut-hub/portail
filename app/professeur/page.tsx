@@ -14,6 +14,11 @@ interface ParentInscrit {
   prochainCours: string;
   paiementStatut: string;
   montantDu: string;
+  payment_status?: string;
+  group_id?: string | null;
+  groupeId?: string | null;
+  groupeNom?: string | null;
+  groupe?: string | null;
   enfants?: {
     id: string;
     nom: string;
@@ -47,8 +52,43 @@ interface RegistrationRequest {
   created_at: string;
 }
 
+interface CourseAgenda {
+  id: string;
+  title: string;
+  group_id: string;
+  group_name: string;
+  scheduled_at: string;
+}
+
+const GROUPES_ADMINISTRATION = [
+  { id: "1", nom: "Groupe A" },
+  { id: "2", nom: "Groupe B" },
+  { id: "3", nom: "Groupe C" },
+  { id: "4", nom: "Groupe D" },
+];
+
 export default function TeacherDashboard() {
   const [professeurNom, setProfesseurNom] = useState("");
+  const [administrationProfiles, setAdministrationProfiles] = useState<Array<{
+    id: string;
+    role: string;
+    nom: string;
+    prenom: string;
+    email: string;
+    group_id: string | null;
+    groupeId: string | null;
+    groupeNom: string | null;
+    groupe: string | null;
+    payment_status: "Payé" | "En attente";
+  }>>([]);
+  const [enregistrementProfil, setEnregistrementProfil] = useState<string | null>(null);
+  const [courses, setCourses] = useState<CourseAgenda[]>([]);
+  const [courseDraft, setCourseDraft] = useState({
+    title: "",
+    groupId: GROUPES_ADMINISTRATION[0].id,
+    scheduledAt: "",
+  });
+  const [courseEditId, setCourseEditId] = useState<string | null>(null);
 
   const hidaya = "hidaya.institut.montreal@gmail.com";
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -110,9 +150,24 @@ export default function TeacherDashboard() {
           ...parent,
           // S'assure que le champ correspond à ce qu'attend ton tableau de bord (ex: "enfants" ou "eleves")
           enfants: enfantsData.filter((enfant) => enfant.parent_id === parent.id),
+          paiementStatut: parent.payment_status ?? "En attente",
         }));
 
         setParentsInscrits(parentsAvecEnfants);
+        setAdministrationProfiles(
+          [...parentsData, ...enfantsData].map((profile) => ({
+            id: String(profile.id),
+            role: String(profile.role),
+            nom: String(profile.nom ?? ""),
+            prenom: String(profile.prenom ?? ""),
+            email: String(profile.email ?? ""),
+            group_id: profile.group_id ?? profile.groupeId ?? null,
+            groupeId: profile.groupeId ?? null,
+            groupeNom: profile.groupeNom ?? profile.groupe ?? null,
+            groupe: profile.groupe ?? null,
+            payment_status: profile.payment_status === "Payé" ? "Payé" : "En attente",
+          }))
+        );
       }
     }
 
@@ -135,6 +190,85 @@ export default function TeacherDashboard() {
     fetchDemandesInscription();
   }, []);
 
+  useEffect(() => {
+    async function fetchCourses() {
+      const { data, error } = await supabase
+        .from("courses")
+        .select("id, title, group_id, group_name, scheduled_at")
+        .order("scheduled_at", { ascending: true });
+
+      if (!error && data) {
+        setCourses(data as CourseAgenda[]);
+      }
+    }
+
+    fetchCourses();
+  }, []);
+
+  async function sauvegarderCours() {
+    if (!courseDraft.title.trim() || !courseDraft.scheduledAt) {
+      alert("Renseignez le titre et l'horaire du cours.");
+      return;
+    }
+
+    const groupe = GROUPES_ADMINISTRATION.find((item) => item.id === courseDraft.groupId);
+    if (!groupe) return;
+
+    const payload = {
+      title: courseDraft.title.trim(),
+      group_id: groupe.id,
+      group_name: groupe.nom,
+      scheduled_at: new Date(courseDraft.scheduledAt).toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    const result = courseEditId
+      ? await supabase.from("courses").update(payload).eq("id", courseEditId).select().single()
+      : await supabase.from("courses").insert(payload).select().single();
+
+    if (result.error) {
+      alert(result.error.message);
+      return;
+    }
+
+    const course = result.data as CourseAgenda;
+    setCourses((current) =>
+      courseEditId
+        ? current.map((item) => item.id === course.id ? course : item).sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at))
+        : [...current, course].sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at))
+    );
+    setCourseDraft({ title: "", groupId: GROUPES_ADMINISTRATION[0].id, scheduledAt: "" });
+    setCourseEditId(null);
+  }
+
+  function modifierCours(course: CourseAgenda) {
+    const localDate = new Date(course.scheduled_at);
+    const scheduledAt = new Date(localDate.getTime() - localDate.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 16);
+    setCourseEditId(course.id);
+    setCourseDraft({
+      title: course.title,
+      groupId: course.group_id,
+      scheduledAt: scheduledAt,
+    });
+  }
+
+  async function supprimerCours(courseId: string) {
+    if (!window.confirm("Supprimer définitivement ce cours ?")) return;
+
+    const { error } = await supabase.from("courses").delete().eq("id", courseId);
+    if (error) {
+      alert(error.message);
+      return;
+    }
+    setCourses((current) => current.filter((course) => course.id !== courseId));
+    if (courseEditId === courseId) {
+      setCourseEditId(null);
+      setCourseDraft({ title: "", groupId: GROUPES_ADMINISTRATION[0].id, scheduledAt: "" });
+    }
+  }
+
   async function traiterDemande(requestId: string, action: "approve" | "reject") {
     if (traitementDemande) return;
     setTraitementDemande(requestId);
@@ -154,13 +288,83 @@ export default function TeacherDashboard() {
     setTraitementDemande(null);
   }
 
-  const sauvegarderModification = (parentMisAJour: ParentInscrit) => {
-    const nouveauxParents = parentsInscrits.map(p => 
-      p.id === parentMisAJour.id ? parentMisAJour : p
+  const sauvegarderModification = async (parentMisAJour: ParentInscrit) => {
+    const groupeNom = String(
+      parentMisAJour.groupeNom ?? parentMisAJour.groupe ?? parentMisAJour.groupeId ?? ""
+    ).trim();
+    const groupe = GROUPES_ADMINISTRATION.find((item) => item.nom === groupeNom);
+    const groupeId = groupe?.id ?? "";
+
+    setEnregistrementProfil(parentMisAJour.id);
+    const { error } = await supabase.rpc("update_profile_administration", {
+      target_profile_id: parentMisAJour.id,
+      target_group_id: groupeId,
+      target_group_nom: groupeNom,
+      target_payment_status: parentMisAJour.payment_status ?? parentMisAJour.paiementStatut ?? "En attente",
+    });
+    setEnregistrementProfil(null);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    const nouveauxParents = parentsInscrits.map((parent) =>
+      parent.id === parentMisAJour.id
+        ? {
+            ...parentMisAJour,
+            paiementStatut: parentMisAJour.payment_status ?? parentMisAJour.paiementStatut ?? "En attente",
+          }
+        : parent
     );
     setParentsInscrits(nouveauxParents);
-    localStorage.setItem("hidaya_parents_inscrits", JSON.stringify(nouveauxParents));
     setParentEdite(null);
+  };
+
+  const modifierProfilAdministration = async (
+    profilId: string,
+    modifications: {
+      groupeNom?: string;
+      groupeId?: string;
+      payment_status?: "Payé" | "En attente";
+    }
+  ) => {
+    const profilActuel = administrationProfiles.find((profil) => profil.id === profilId);
+    if (!profilActuel) return;
+
+    const groupeNom = modifications.groupeNom ?? profilActuel.groupeNom ?? profilActuel.groupe ?? "";
+    const groupe = GROUPES_ADMINISTRATION.find((item) => item.nom === groupeNom);
+    const groupeId = modifications.groupeId ?? groupe?.id ?? "";
+    const paymentStatus = modifications.payment_status ?? profilActuel.payment_status;
+
+    setEnregistrementProfil(profilId);
+    const { error } = await supabase.rpc("update_profile_administration", {
+      target_profile_id: profilId,
+      target_group_id: groupeId,
+      target_group_nom: groupeNom,
+      target_payment_status: paymentStatus,
+    });
+    setEnregistrementProfil(null);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setAdministrationProfiles((profiles) =>
+      profiles.map((profil) =>
+        profil.id === profilId
+          ? {
+              ...profil,
+              groupeNom,
+              groupe: groupeNom || null,
+              groupeId: groupeId || null,
+              group_id: groupeId || null,
+              payment_status: paymentStatus,
+            }
+          : profil
+      )
+    );
   };
   // ------------------------------------
 
@@ -1088,6 +1292,189 @@ export default function TeacherDashboard() {
               )}
             </div>
 
+            <div className="rounded-2xl border border-green-100 p-5">
+              <h4 className="text-lg font-bold text-green-900">Gestion de l&apos;agenda</h4>
+              <p className="mt-1 text-sm text-green-700">
+                Créez un cours, choisissez son groupe et son horaire.
+              </p>
+
+              <div className="mt-4 grid gap-3 md:grid-cols-[1fr_180px_220px_auto] md:items-end">
+                <div>
+                  <label className="text-xs font-semibold text-green-700">Titre du cours</label>
+                  <input
+                    type="text"
+                    value={courseDraft.title}
+                    onChange={(e) => setCourseDraft((draft) => ({ ...draft, title: e.target.value }))}
+                    placeholder="Ex. Récitation et tajwid"
+                    className="mt-1 w-full rounded-xl border border-green-200 p-2.5 text-sm outline-none focus:border-green-700"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-green-700">Groupe</label>
+                  <select
+                    value={courseDraft.groupId}
+                    onChange={(e) => setCourseDraft((draft) => ({ ...draft, groupId: e.target.value }))}
+                    className="mt-1 w-full rounded-xl border border-green-200 bg-white p-2.5 text-sm font-semibold outline-none focus:border-green-700"
+                  >
+                    {GROUPES_ADMINISTRATION.map((groupe) => (
+                      <option key={groupe.id} value={groupe.id}>{groupe.nom}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-green-700">Date et horaire</label>
+                  <input
+                    type="datetime-local"
+                    value={courseDraft.scheduledAt}
+                    onChange={(e) => setCourseDraft((draft) => ({ ...draft, scheduledAt: e.target.value }))}
+                    className="mt-1 w-full rounded-xl border border-green-200 p-2.5 text-sm outline-none focus:border-green-700"
+                  />
+                </div>
+                <button
+                  onClick={sauvegarderCours}
+                  className="rounded-xl bg-green-700 px-5 py-2.5 text-sm font-bold text-white hover:bg-green-800"
+                >
+                  {courseEditId ? "Mettre à jour" : "Ajouter"}
+                </button>
+              </div>
+
+              {courseEditId && (
+                <button
+                  onClick={() => {
+                    setCourseEditId(null);
+                    setCourseDraft({ title: "", groupId: GROUPES_ADMINISTRATION[0].id, scheduledAt: "" });
+                  }}
+                  className="mt-3 text-xs font-semibold text-green-700 underline"
+                >
+                  Annuler la modification
+                </button>
+              )}
+
+              <div className="mt-5 overflow-x-auto">
+                <table className="w-full min-w-[620px] text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-green-100 text-sm font-semibold text-green-700">
+                      <th className="py-3 px-4">Cours</th>
+                      <th className="py-3 px-4">Groupe</th>
+                      <th className="py-3 px-4">Horaire</th>
+                      <th className="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-green-50">
+                    {courses.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="py-6 px-4 text-center text-sm text-green-700">
+                          Aucun cours planifié.
+                        </td>
+                      </tr>
+                    ) : courses.map((course) => (
+                      <tr key={course.id} className="text-green-900">
+                        <td className="py-4 px-4 font-bold">{course.title}</td>
+                        <td className="py-4 px-4 text-sm">{course.group_name}</td>
+                        <td className="py-4 px-4 text-sm">
+                          {new Date(course.scheduled_at).toLocaleString("fr-FR", {
+                            dateStyle: "medium",
+                            timeStyle: "short",
+                          })}
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              onClick={() => modifierCours(course)}
+                              className="rounded-xl border border-green-300 px-3 py-1.5 text-xs font-bold text-green-700 hover:bg-green-50"
+                            >
+                              Modifier
+                            </button>
+                            <button
+                              onClick={() => supprimerCours(course.id)}
+                              className="rounded-xl border border-red-300 px-3 py-1.5 text-xs font-bold text-red-700 hover:bg-red-50"
+                            >
+                              Supprimer
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-green-100 p-5">
+              <h4 className="text-lg font-bold text-green-900">Gestion des élèves et parents</h4>
+              <p className="mt-1 text-sm text-green-700">
+                Modifiez directement le groupe et le statut de paiement. Les changements sont enregistrés dans Supabase.
+              </p>
+
+              {administrationProfiles.length === 0 ? (
+                <p className="mt-4 text-sm text-green-800">Aucun profil élève ou parent trouvé.</p>
+              ) : (
+                <div className="mt-4 overflow-x-auto">
+                  <table className="w-full min-w-[720px] text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-green-100 text-sm font-semibold text-green-700">
+                        <th className="py-3 px-4">Profil</th>
+                        <th className="py-3 px-4">Type</th>
+                        <th className="py-3 px-4">Groupe</th>
+                        <th className="py-3 px-4">Paiement</th>
+                        <th className="py-3 px-4 text-right">État</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-green-50">
+                      {administrationProfiles.map((profil) => {
+                        const groupeActuel = profil.groupeNom ?? profil.groupe ?? "";
+                        return (
+                          <tr key={profil.id} className="text-green-900">
+                            <td className="py-4 px-4">
+                              <div className="font-bold">{[profil.prenom, profil.nom].filter(Boolean).join(" ")}</div>
+                              <div className="text-xs text-green-600">{profil.email}</div>
+                            </td>
+                            <td className="py-4 px-4 text-sm">
+                              {profil.role === "student" ? "Élève" : "Parent"}
+                            </td>
+                            <td className="py-4 px-4">
+                              <select
+                                value={groupeActuel}
+                                onChange={(e) => modifierProfilAdministration(profil.id, {
+                                  groupeNom: e.target.value,
+                                  groupeId: GROUPES_ADMINISTRATION.find((groupe) => groupe.nom === e.target.value)?.id ?? "",
+                                })}
+                                className="rounded-xl border border-green-200 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-green-700"
+                              >
+                                <option value="">Sans groupe</option>
+                                {GROUPES_ADMINISTRATION.map((groupe) => (
+                                  <option key={groupe.id} value={groupe.nom}>{groupe.nom}</option>
+                                ))}
+                              </select>
+                            </td>
+                            <td className="py-4 px-4">
+                              <select
+                                value={profil.payment_status}
+                                onChange={(e) => modifierProfilAdministration(profil.id, {
+                                  payment_status: e.target.value as "Payé" | "En attente",
+                                })}
+                                className={`rounded-xl border px-3 py-2 text-sm font-bold outline-none ${
+                                  profil.payment_status === "Payé"
+                                    ? "border-emerald-300 bg-emerald-50 text-emerald-800"
+                                    : "border-amber-300 bg-amber-50 text-amber-800"
+                                }`}
+                              >
+                                <option value="Payé">Payé</option>
+                                <option value="En attente">En attente</option>
+                              </select>
+                            </td>
+                            <td className="py-4 px-4 text-right text-xs font-semibold text-green-700">
+                              {enregistrementProfil === profil.id ? "Enregistrement..." : "À jour"}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
             {parentsInscrits.length === 0 ? (
               <div className="rounded-2xl bg-green-50/50 p-6 text-center border border-green-100">
                 <p className="text-green-800 font-medium">Aucun parent inscrit trouvé dans le stockage local.</p>
@@ -1111,6 +1498,11 @@ export default function TeacherDashboard() {
                         <td className="py-4 px-4 text-sm text-green-700">
                           <div>{parent.telephone}</div>
                           <div className="text-xs text-green-600">{parent.email}</div>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                            {parent.groupeNom ?? parent.groupe ?? parent.groupeId ?? "Sans groupe"}
+                          </span>
                         </td>
                         <td className="py-4 px-4">
                           <span className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${
@@ -1145,21 +1537,34 @@ export default function TeacherDashboard() {
                   <div className="space-y-3">
                     <div>
                       <label className="text-xs font-semibold text-green-700">Groupe assigné</label>
-                      <input
-                        type="text"
+                      <select
+                        value={parentEdite.groupeNom ?? parentEdite.groupe ?? ""}
+                        onChange={(e) => setParentEdite({
+                          ...parentEdite,
+                          groupeNom: e.target.value,
+                          groupe: e.target.value,
+                        })}
                         className="mt-1 w-full rounded-xl border border-green-200 p-2.5 text-sm outline-none focus:border-green-700"
-                      />
+                      >
+                        <option value="">Sans groupe</option>
+                        {GROUPES_ADMINISTRATION.map((groupe) => (
+                          <option key={groupe.id} value={groupe.nom}>{groupe.nom}</option>
+                        ))}
+                      </select>
                     </div>
                     <div>
                       <label className="text-xs font-semibold text-green-700">Statut du paiement</label>
                       <select
-                        value={parentEdite.paiementStatut}
-                        onChange={(e) => setParentEdite({ ...parentEdite, paiementStatut: e.target.value })}
+                        value={parentEdite.payment_status ?? parentEdite.paiementStatut ?? "En attente"}
+                        onChange={(e) => setParentEdite({
+                          ...parentEdite,
+                          payment_status: e.target.value as "Payé" | "En attente",
+                          paiementStatut: e.target.value,
+                        })}
                         className="mt-1 w-full rounded-xl border border-green-200 p-2.5 text-sm outline-none focus:border-green-700 bg-white font-semibold"
                       >
                         <option value="Payé">Payé</option>
                         <option value="En attente">En attente</option>
-                        <option value="Impayé">Impayé</option>
                       </select>
                     </div>
                     <div>

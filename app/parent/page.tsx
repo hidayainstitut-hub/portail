@@ -17,6 +17,12 @@ export default function ParentDashboard() {
   const [reports, setReports] = useState<CourseReport[]>([]);
   const [parentName, setParentName] = useState("");
   const [childrenNames, setChildrenNames] = useState<string[]>([]);
+  const [agendaCourses, setAgendaCourses] = useState<Array<{
+    id: string;
+    title: string;
+    scheduled_at: string;
+    group_name: string;
+  }>>([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -76,6 +82,17 @@ export default function ParentDashboard() {
         return;
       }
 
+      const { data: courses, error: coursesError } = await supabase
+        .from("courses")
+        .select("id, title, scheduled_at, group_name")
+        .gte("scheduled_at", new Date().toISOString())
+        .order("scheduled_at", { ascending: true })
+        .limit(20);
+
+      if (!coursesError && courses) {
+        setAgendaCourses(courses);
+      }
+
       const { data, error } = await supabase
         .from("course_reports")
         .select("id, summary, homework, course_date, group_id")
@@ -107,6 +124,27 @@ export default function ParentDashboard() {
           )}
           <p className="mt-2 text-green-700">Comptes-rendus récents des séances.</p>
         </div>
+
+        <section className="rounded-2xl border border-green-100 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-bold text-green-900">📅 Agenda des cours</h2>
+          {agendaCourses.length === 0 ? (
+            <p className="mt-3 text-sm text-green-700">Aucun cours planifié pour le moment.</p>
+          ) : (
+            <div className="mt-4 space-y-3">
+              {agendaCourses.map((course) => (
+                <article key={course.id} className="rounded-xl border border-green-100 bg-green-50/40 p-4">
+                  <p className="font-bold text-green-900">{course.title}</p>
+                  <p className="mt-1 text-sm text-green-700">
+                    {course.group_name} · {new Date(course.scheduled_at).toLocaleString("fr-FR", {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })}
+                  </p>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
 
         {loading ? (
           <p className="rounded-2xl bg-white p-6 text-green-800 shadow-sm">Chargement...</p>
