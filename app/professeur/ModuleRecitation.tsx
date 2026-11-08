@@ -79,8 +79,8 @@ export default function ModuleRecitation({
 
         return {
           id: String(profile.id),
-          nom: String(profile.nom ?? profile.last_name ?? ""),
-          prenom: String(profile.prenom ?? profile.first_name ?? "Élève"),
+          nom: "",
+          prenom: String(profile.nom ?? ""),
           etoiles: Number(progression?.stars ?? profile.etoiles ?? 0),
           fautes: Array.isArray(progression?.fautes) ? progression.fautes : [],
           commentaire: String(progression?.commentaire ?? ""),

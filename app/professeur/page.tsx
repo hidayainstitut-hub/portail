@@ -48,11 +48,7 @@ interface RegistrationRequest {
 }
 
 export default function TeacherDashboard() {
-  // Données du professeur connecté
-  const professeur = {
-    prenom: "Oum",
-    nom: "Aisha",
-  };
+  const [professeurNom, setProfesseurNom] = useState("");
 
   const hidaya = "hidaya.institut.montreal@gmail.com";
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -67,6 +63,14 @@ export default function TeacherDashboard() {
 
       if (!error) {
         setUserEmail(data.session?.user.email ?? null);
+        if (data.session?.user.id) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("nom")
+            .eq("id", data.session.user.id)
+            .maybeSingle();
+          if (!ignore) setProfesseurNom(profile?.nom ?? "");
+        }
       } else {
         setUserEmail(null);
       }
@@ -280,8 +284,8 @@ export default function TeacherDashboard() {
 
         return {
           id: String(profile.id),
-          prenom: String(profile.prenom ?? profile.first_name ?? "Élève"),
-          nom: String(profile.nom ?? profile.last_name ?? ""),
+          prenom: String(profile.nom ?? ""),
+          nom: "",
           groupeId: profile.group_id ?? profile.groupeId ?? null,
           groupeNom: profile.groupeNom ?? profile.groupe ?? null,
           groupe: profile.groupe ?? null,
@@ -366,7 +370,7 @@ export default function TeacherDashboard() {
 
       const { data: eleves, error } = await supabase
         .from("profiles")
-        .select("id, full_name, prenom, nom, parent_id, group_id, groupeId, groupeNom, groupe, role")
+        .select("id, nom, parent_id, group_id, groupeId, groupeNom, groupe, role")
         .eq("role", "student");
 
       if (error || !eleves) {
@@ -387,23 +391,22 @@ export default function TeacherDashboard() {
         .map((eleve) => eleve.parent_id)
         .filter((id): id is string => Boolean(id));
 
-      let parents: Array<{ id: string; full_name?: string; prenom?: string; nom?: string; telephone?: string; email?: string }> = [];
+      let parents: Array<{ id: string; nom?: string; telephone?: string; email?: string }> = [];
       if (parentIds.length > 0) {
         const { data: parentsData } = await supabase
           .from("profiles")
-          .select("id, full_name, prenom, nom, telephone, email")
+            .select("id, nom, telephone, email")
           .in("id", parentIds);
         parents = parentsData ?? [];
       }
 
       const parentsParId = new Map(parents.map((parent) => [String(parent.id), parent]));
       const listeEleves = elevesDuGroupe.map((profile) => {
-        const fullName = String(profile.full_name ?? "").trim();
-        const prenom = String(profile.prenom ?? fullName.split(" ")[0] ?? "Élève").trim();
-        const nom = String(profile.nom ?? fullName.split(" ").slice(1).join(" ") ?? "").trim();
+        const prenom = String(profile.nom ?? "").trim();
+        const nom = "";
         const parent = profile.parent_id ? parentsParId.get(String(profile.parent_id)) : undefined;
         const parentNom = parent
-          ? String(parent.full_name ?? [parent.prenom, parent.nom].filter(Boolean).join(" ") ?? "").trim()
+          ? String(parent.nom ?? "").trim()
           : "";
         const contact = parent
           ? [parentNom, parent.telephone, parent.email].filter(Boolean).join(" · ")
@@ -678,7 +681,7 @@ export default function TeacherDashboard() {
           <>
             <div className="rounded-3xl bg-white p-8 shadow-sm border border-green-100">
               <h2 className="text-3xl font-bold text-green-900">
-                Bienvenue, {professeur.nom} ! 
+                Bienvenue, {professeurNom} !
               </h2>
               <p className="mt-3 text-lg text-green-800">
                 N&apos;oublie pas la bonne intention ! Certes, notre bien aimé a dit ((innamal -a3maalou bi n-niyyaat))

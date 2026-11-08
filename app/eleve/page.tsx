@@ -12,7 +12,7 @@ function EspaceEleveContent() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [eleve, setEleve] = useState<{
     id: string;
-    full_name: string;
+    nom: string;
     group_id: string | null;
     groupeId: string | null;
     groupeNom: string | null;
@@ -36,7 +36,7 @@ function EspaceEleveContent() {
         if (user) {
           const { data, error } = await supabase
             .from("profiles")
-            .select("id, full_name, group_id, groupeId, groupeNom, groupe, role")
+            .select("id, nom, group_id, groupeId, groupeNom, groupe, role")
             .eq("id", user.id)
             .single();
 
@@ -48,7 +48,7 @@ function EspaceEleveContent() {
             }
             setEleve({
               id: String(data.id),
-              full_name: String(data.full_name ?? ""),
+              nom: String(data.nom ?? ""),
               group_id: data.group_id ?? null,
               groupeId: data.groupeId ?? null,
               groupeNom: data.groupeNom ?? null,
@@ -168,7 +168,7 @@ function EspaceEleveContent() {
               🧭 Hidaya Aventure
             </h1>
             <p className="text-xs text-slate-400">
-              {eleve.full_name || "Élève"} • <span className="text-emerald-300 font-semibold">{eleve.groupeNom || eleve.groupe || eleve.group_id || "Groupe non renseigné"}</span>
+              {eleve.nom} • <span className="text-emerald-300 font-semibold">{eleve.groupeNom || eleve.groupe || eleve.group_id || "Groupe non renseigné"}</span>
             </p>
           </div>
         </div>
@@ -201,10 +201,10 @@ function EspaceEleveContent() {
               <div className="flex items-center justify-between border-b border-slate-700 pb-4 mb-6">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-400 flex items-center justify-center font-bold text-emerald-300">
-                    {(eleve.full_name || "E").charAt(0).toUpperCase()}
+                    {eleve.nom.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <p className="font-bold text-slate-100">{eleve.full_name || "Élève"}</p>
+                    <p className="font-bold text-slate-100">{eleve.nom}</p>
                     <p className="text-xs text-emerald-400">
                       {eleve.groupeNom || eleve.groupe || eleve.group_id || "Groupe non renseigné"}
                     </p>
@@ -278,7 +278,7 @@ function EspaceEleveContent() {
               Guide Hidaya ✨
             </h2>
             <p className="text-xs text-slate-300 mt-0.5">
-              « As-Salamou ^Alaykoum {eleve.full_name || "Élève"} ! Tu es dans le <strong className="text-emerald-400">{eleve.groupeNom || eleve.groupe || eleve.group_id || "ton groupe"}</strong>.
+              « As-Salamou ^Alaykoum {eleve.nom} ! Tu es dans le <strong className="text-emerald-400">{eleve.groupeNom || eleve.groupe || eleve.group_id || "ton groupe"}</strong>.
               Voici la capsule de révision préparée par ton enseignant.e ! »
             </p>
           </div>

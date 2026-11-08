@@ -32,7 +32,7 @@ export default function ParentDashboard() {
 
       const { data: parentProfile } = await supabase
         .from("profiles")
-        .select("full_name, role")
+        .select("nom, role")
         .eq("id", userData.user.id)
         .maybeSingle();
 
@@ -42,11 +42,11 @@ export default function ParentDashboard() {
         return;
       }
 
-      setParentName(parentProfile?.full_name ?? "");
+      setParentName(parentProfile?.nom ?? "");
 
       const { data: children, error: childrenError } = await supabase
         .from("profiles")
-        .select("full_name, groupeId, groupeNom, groupe, group_id")
+        .select("nom, groupeId, groupeNom, groupe, group_id")
         .eq("parent_id", userData.user.id);
 
       if (childrenError) {
@@ -66,7 +66,7 @@ export default function ParentDashboard() {
 
       setChildrenNames(
         (children ?? [])
-          .map((child) => child.full_name)
+          .map((child) => child.nom)
           .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
       );
 
