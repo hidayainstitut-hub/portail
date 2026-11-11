@@ -34,11 +34,6 @@ export default function ConnexionPage() {
       return;
     }
 
-    // Enregistre les infos d'accès locales si besoin
-    if (data.user) {
-      localStorage.setItem("user", JSON.stringify(data.user));
-    }
-
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("role")
@@ -57,15 +52,43 @@ export default function ConnexionPage() {
       return;
     }
 
-    if (profile.role === "parent") {
-      router.push("/parent");
-    } else if (profile.role === "student") {
-      router.push("/eleve");
-    } else if (profile.role === "prof" || profile.role === "teacher" || profile.role === "professeur") {
-      router.push("/professeur");
-    } else {
-      setErreur("Votre rôle n'est pas encore autorisé à accéder au portail.");
+    const role = profile.role.trim().toLowerCase();
+    const isTeacherRole = ["prof", "teacher", "professeur"].includes(role);
+    const roleMatchesProfil =
+      (profil === "eleve" && role === "student") ||
+      (profil === "parent" && role === "parent") ||
+      (profil === "prof" && isTeacherRole);
+
+    if (role === "admin") {
+      if (data.user) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+      }
+      router.push("/professeur?onglet=administration");
+      return;
+    }
+
+    if (!roleMatchesProfil) {
+      const isKnownRole = isTeacherRole || role === "student" || role === "parent";
+      setErreur(
+        isKnownRole
+          ? "Le profil sélectionné ne correspond pas au rôle de votre compte. Veuillez choisir le bon profil."
+          : "Votre rôle n'est pas encore autorisé à accéder au portail."
+      );
       await supabase.auth.signOut();
+      localStorage.removeItem("user");
+      return;
+    }
+
+    if (data.user) {
+      localStorage.setItem("user", JSON.stringify(data.user));
+    }
+
+    if (isTeacherRole) {
+      router.push("/professeur");
+    } else if (role === "student") {
+      router.push("/eleve");
+    } else if (role === "parent") {
+      router.push("/parent");
     }
   };
 

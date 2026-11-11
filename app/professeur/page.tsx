@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState, useEffect, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { supabase } from "@/lib/supabase";
 
@@ -68,7 +69,13 @@ const GROUPES_ADMINISTRATION = [
 ];
 
 export default function TeacherDashboard() {
+  const router = useRouter();
   const [professeurNom, setProfesseurNom] = useState("");
+  const [profileRole, setProfileRole] = useState<string | null>(null);
+  const [authorized, setAuthorized] = useState(false);
+  const [ongletActif, setOngletActif] = useState<
+    "accueil" | "groupes" | "seances" | "recitation" | "administration" | "compte"
+  >("accueil");
   const [administrationProfiles, setAdministrationProfiles] = useState<Array<{
     id: string;
     role: string;
@@ -90,38 +97,59 @@ export default function TeacherDashboard() {
   });
   const [courseEditId, setCourseEditId] = useState<string | null>(null);
 
-  const hidaya = "hidaya.institut.montreal@gmail.com";
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-
   useEffect(() => {
     let ignore = false;
 
-    async function recupererSession() {
-      const { data, error } = await supabase.auth.getSession();
+    async function verifierAcces() {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+      if (ignore) return;
+      if (userError || !user) {
+        router.replace("/connexion");
+        return;
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("nom, role")
+        .eq("id", user.id)
+        .maybeSingle();
 
       if (ignore) return;
 
-      if (!error) {
-        setUserEmail(data.session?.user.email ?? null);
-        if (data.session?.user.id) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("nom")
-            .eq("id", data.session.user.id)
-            .maybeSingle();
-          if (!ignore) setProfesseurNom(profile?.nom ?? "");
-        }
-      } else {
-        setUserEmail(null);
+      const role = String(profile?.role ?? "").trim().toLowerCase();
+      if (profileError || !profile || !role) {
+        await supabase.auth.signOut();
+        router.replace("/connexion");
+        return;
       }
+
+      if (role === "student") {
+        router.replace("/eleve");
+        return;
+      }
+      if (role === "parent") {
+        router.replace("/parent");
+        return;
+      }
+      if (role !== "admin" && !["prof", "teacher", "professeur"].includes(role)) {
+        await supabase.auth.signOut();
+        router.replace("/connexion");
+        return;
+      }
+
+      setProfileRole(role);
+      setProfesseurNom(profile.nom ?? "");
+      if (role === "admin") setOngletActif("administration");
+      setAuthorized(true);
     }
 
-    recupererSession();
+    verifierAcces();
 
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [router]);
 
   // --- GESTION DES PARENTS INSCRITS ---
   const [parentsInscrits, setParentsInscrits] = useState<ParentInscrit[]>([]);
@@ -131,6 +159,8 @@ export default function TeacherDashboard() {
 
  // --- GESTION DES PARENTS ET ELEVES DEPUIS SUPABASE ---
   useEffect(() => {
+    if (!authorized) return;
+
     async function fetchDonneesSupabase() {
       // 1. Récupérer les parents
       const { data: parentsData, error: parentsError } = await supabase
@@ -172,9 +202,11 @@ export default function TeacherDashboard() {
     }
 
     fetchDonneesSupabase();
-  }, []);
+  }, [authorized]);
 
   useEffect(() => {
+    if (!authorized) return;
+
     async function fetchDemandesInscription() {
       const { data, error } = await supabase
         .from("registration_requests")
@@ -188,9 +220,11 @@ export default function TeacherDashboard() {
     }
 
     fetchDemandesInscription();
-  }, []);
+  }, [authorized]);
 
   useEffect(() => {
+    if (!authorized) return;
+
     async function fetchCourses() {
       const { data, error } = await supabase
         .from("courses")
@@ -203,7 +237,7 @@ export default function TeacherDashboard() {
     }
 
     fetchCourses();
-  }, []);
+  }, [authorized]);
 
   async function sauvegarderCours() {
     if (!courseDraft.title.trim() || !courseDraft.scheduledAt) {
@@ -368,11 +402,6 @@ export default function TeacherDashboard() {
   };
   // ------------------------------------
 
-  // État des onglets du menu principal du professeur (ajout de "administration")
-  const [ongletActif, setOngletActif] = useState<
-    "accueil" | "groupes" | "seances" | "recitation" | "administration" | "compte"
-  >("accueil");
-
   // Notifications
   const [notificationsOuvertes, setNotificationsOuvertes] = useState(false);
 
@@ -432,6 +461,8 @@ export default function TeacherDashboard() {
   const [validationEnCours, setValidationEnCours] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!authorized) return;
+
     let ignore = false;
 
     async function chargerElevesRecitation() {
@@ -521,7 +552,7 @@ export default function TeacherDashboard() {
       ignore = true;
       supabase.removeChannel(channel);
     };
-  }, [groupeSelectionne]);
+  }, [authorized, groupeSelectionne]);
 
   const validerPortion = async (eleve: EleveRecitation) => {
     setValidationEnCours(eleve.id);
@@ -567,6 +598,8 @@ export default function TeacherDashboard() {
   const [presences, setPresences] = useState<Record<string, "Présent" | "Absent">>({});
 
   useEffect(() => {
+    if (!authorized) return;
+
     let ignore = false;
 
     async function chargerAppel() {
@@ -660,7 +693,7 @@ export default function TeacherDashboard() {
       ignore = true;
       supabase.removeChannel(channel);
     };
-  }, [groupeSelectionne, dateAppel]);
+  }, [authorized, groupeSelectionne, dateAppel]);
 
   const modifierPresence = async (eleveId: string, statut: "Présent" | "Absent") => {
     setPresences((current) => ({ ...current, [eleveId]: statut }));
@@ -764,6 +797,8 @@ export default function TeacherDashboard() {
     }));
   };
 
+  if (!authorized) return null;
+
   return (
     <main className="min-h-screen bg-[#A8D58F] pb-16">
       {/* Barre supérieure */}
@@ -781,7 +816,9 @@ export default function TeacherDashboard() {
               <h1 className="text-xl font-bold text-green-900">
                 Hidaya Institut
               </h1>
-              <p className="text-sm text-green-700">Portail Professeur</p>
+              <p className="text-sm text-green-700">
+                {profileRole === "admin" ? "Administration" : "Portail Professeur"}
+              </p>
             </div>
           </div>
 
@@ -860,7 +897,7 @@ export default function TeacherDashboard() {
         </button>
 
         {/* Bouton Administration visible UNIQUEMENT pour le mail officiel de l'école */}
-        {userEmail?.toLowerCase() === hidaya.toLowerCase() && (
+        {profileRole === "admin" && (
           <button
             onClick={() => setOngletActif("administration")}
             className={`rounded-xl px-5 py-3 font-semibold transition ${
@@ -1237,7 +1274,7 @@ export default function TeacherDashboard() {
         {/* ========================================================= */}
         {/* ONGLET 5 : ADMINISTRATION */}
         {/* ========================================================= */}
-        {ongletActif === "administration" && userEmail?.toLowerCase() === hidaya.toLowerCase() && (
+        {ongletActif === "administration" && profileRole === "admin" && (
           <div className="rounded-3xl bg-white p-8 shadow-sm border border-green-100 space-y-6">
             <h3 className="text-2xl font-bold text-green-900">⚙️ Administration - Gestion des Inscriptions</h3>
             <p className="text-sm text-green-700">
